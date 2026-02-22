@@ -174,4 +174,5 @@ model ReportVote {
 
   @@unique([reportId, userId]) // one vote per user per report
   @@index([reportId])
+  @@index([userId, createdAt]) // for rate limiting queries
 }

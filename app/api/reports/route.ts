@@ -47,6 +47,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
+    // Rate limit: max 5 reports per user per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentCount = await db.report.count({
+      where: { reportedById: session.user.id, createdAt: { gte: oneHourAgo } },
+    });
+    if (recentCount >= 5) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Max 5 reports per hour.' },
+        { status: 429 },
+      );
+    }
+
     const body = (await req.json()) as CreateReportBody;
     const { steamId, steamName, game, description, proofLinks, severity } = body;
 
