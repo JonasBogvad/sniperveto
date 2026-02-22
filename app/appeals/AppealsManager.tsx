@@ -47,7 +47,10 @@ export default function AppealsManager({ appeals: initial }: { appeals: AppealIt
   const [error, setError] = useState<string | null>(null);
 
   const filtered = filter === 'ALL' ? appeals : appeals.filter((a) => a.status === filter);
-  const pendingCount = appeals.filter((a) => a.status === 'PENDING').length;
+  const counts = appeals.reduce<Record<string, number>>((acc, a) => {
+    acc[a.status] = (acc[a.status] ?? 0) + 1;
+    return acc;
+  }, {});
 
   async function confirmAction(snapshot: PendingAction) {
     setError(null);
@@ -82,11 +85,11 @@ export default function AppealsManager({ appeals: initial }: { appeals: AppealIt
   }
 
   const FILTERS: { value: Filter; label: string }[] = [
-    { value: 'ALL', label: 'All' },
-    { value: 'PENDING', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
-    { value: 'REVIEWED', label: 'Reviewed' },
-    { value: 'ACCEPTED', label: 'Accepted' },
-    { value: 'REJECTED', label: 'Rejected' },
+    { value: 'ALL', label: `All${appeals.length > 0 ? ` (${appeals.length})` : ''}` },
+    { value: 'PENDING', label: `Pending${counts.PENDING ? ` (${counts.PENDING})` : ''}` },
+    { value: 'REVIEWED', label: `Reviewed${counts.REVIEWED ? ` (${counts.REVIEWED})` : ''}` },
+    { value: 'ACCEPTED', label: `Accepted${counts.ACCEPTED ? ` (${counts.ACCEPTED})` : ''}` },
+    { value: 'REJECTED', label: `Rejected${counts.REJECTED ? ` (${counts.REJECTED})` : ''}` },
   ];
 
   return (

@@ -6,11 +6,10 @@ import { lookupSteamProfile } from '@/lib/steam';
 import { notifyDiscordNewReport } from '@/lib/discord';
 import type { CreateReportBody } from '@/types';
 
-const toDbPlatform = (p: string): 'TWITCH' | 'KICK' | 'YOUTUBE' => {
-  const map: Record<string, 'TWITCH' | 'KICK' | 'YOUTUBE'> = {
+const toDbPlatform = (p: string): 'TWITCH' | 'KICK' => {
+  const map: Record<string, 'TWITCH' | 'KICK'> = {
     twitch: 'TWITCH',
     kick: 'KICK',
-    youtube: 'YOUTUBE',
   };
   return map[p.toLowerCase()] ?? 'TWITCH';
 };

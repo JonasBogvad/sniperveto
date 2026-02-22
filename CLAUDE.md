@@ -11,7 +11,7 @@
 **The solution**: a community-driven database where streamers and their mods can report suspected snipers by Steam ID. Other streamers can corroborate reports with votes, building trust-weighted evidence over time.
 
 **Core user flows:**
-1. Streamer or mod logs in via OAuth (Twitch / Kick / YouTube)
+1. Streamer or mod logs in via OAuth (Twitch / Kick)
 2. They submit a report: Steam ID + evidence links + description
 3. Other verified streamers upvote to corroborate
 4. The database becomes a shared blocklist for the streaming community
@@ -49,7 +49,7 @@ Reports are anchored to a **Steam account**, not to a streamer or a game. This i
 | Database | Neon (PostgreSQL) via Vercel | |
 | ORM | Prisma v7 | Schema: `prisma/schema.prisma` |
 | DB client | `lib/db.ts` | Prisma singleton + Neon adapter |
-| Auth | NextAuth.js v5 (next-auth@beta) | Twitch live, YouTube pending, Kick no OAuth yet |
+| Auth | NextAuth.js v5 (next-auth@beta) | Twitch + Kick live (OAuth 2.1 + PKCE), YouTube removed |
 | Deployment | Vercel | Auto-deploy on push to `main` |
 
 ---
@@ -66,10 +66,28 @@ app/
         route.ts            # Steam OpenID redirect (appeal verification)
         callback/
           route.ts          # Steam OpenID callback → sets steam_appeal_token cookie
+    admin/
+      users/
+        [id]/
+          role/
+            route.ts        # PATCH — set user role (ADMIN only), creates/deletes StreamerProfile
+      streamers/
+        [id]/
+          mods/
+            route.ts        # POST — add mod to a streamer (ADMIN only)
+            [modId]/
+              route.ts      # DELETE — remove mod from a streamer (ADMIN only)
     appeals/
       [id]/
         review/
           route.ts          # POST — accept/reject an appeal (MOD/STREAMER/ADMIN only)
+    kick-token-proxy/
+      route.ts              # POST — proxies Kick token exchange, injects client_id/secret into body
+    my/
+      mods/
+        route.ts            # GET (list mods) + POST (add mod) — STREAMER only
+        [modId]/
+          route.ts          # DELETE — remove own mod (STREAMER only)
     reports/
       route.ts              # GET (list) + POST (create)
       [id]/
@@ -77,15 +95,25 @@ app/
           route.ts          # POST — file appeal (requires steam_appeal_token cookie)
         vote/
           route.ts          # POST (upsert vote)
+    users/
+      search/
+        route.ts            # GET — search users by username (MOD/STREAMER/ADMIN)
   about/
     page.tsx                # /about — static info page
+  admin/
+    page.tsx                # /admin — user/streamer management (ADMIN only, Server Component)
+    AdminPanel.tsx          # Client Component — promote users, manage mods per streamer
   appeal/
     [id]/
       page.tsx              # /appeal/[id] — Server Component, reads DB + cookie
       AppealForm.tsx        # Client Component — Steam login or appeal form
   appeals/
     page.tsx                # /appeals — appeal management (MOD/STREAMER/ADMIN only)
-    AppealsManager.tsx      # Client Component — accept/reject UI
+    AppealsManager.tsx      # Client Component — accept/reject UI with status counts
+  my/
+    mods/
+      page.tsx              # /my/mods — STREAMER's own mod management (Server Component)
+      ModsManager.tsx       # Client Component — search users, add/remove mods
   privacy/
     page.tsx                # /privacy — Privacy Policy
   report/
@@ -98,8 +126,8 @@ app/
   page.tsx                  # / — sniper database list (Client Component)
 components/
   ui/                       # shadcn primitives (Button, Card, Dialog, etc.)
-  Header.tsx                # Nav + auth — Appeals link shown to MOD/STREAMER/ADMIN
-  PlatformIcon.tsx          # SVG icons for Twitch / YouTube / Kick
+  Header.tsx                # Nav + auth — Appeals/My Mods/Admin links shown by role
+  PlatformIcon.tsx          # SVG icons for Twitch / Kick (YouTube kept in component but unused)
   ReportCard.tsx
   ReportDetailModal.tsx     # Opens from DB list; links to /appeal/[id]
   ReportForm.tsx
@@ -137,7 +165,8 @@ types/
 | `DIRECT_URL` | Yes | Direct Neon connection (migrations) |
 | `AUTH_SECRET` | Yes | NextAuth + appeal token signing |
 | `AUTH_TWITCH_ID` / `AUTH_TWITCH_SECRET` | Yes | Twitch OAuth |
-| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Yes | YouTube OAuth |
+| `AUTH_KICK_ID` / `AUTH_KICK_SECRET` | Yes | Kick OAuth 2.1 |
+| `AUTH_URL` | Yes | Full base URL (e.g. `http://localhost:3000`); used by Kick token proxy and NextAuth callback construction |
 | `STEAM_API_KEY` | Yes | Steam OpenID verification |
 | `DISCORD_WEBHOOK_URL` | Yes | Report + appeal notifications |
 | `AUTH_ADMIN_USERNAMES` | Optional | Comma-separated platform usernames granted ADMIN role |
@@ -176,7 +205,7 @@ All colors are defined as CSS tokens in `app/globals.css` and available as Tailw
 
 ### Icons — PlatformIcon
 
-`components/PlatformIcon.tsx` renders SVG icons for `twitch`, `youtube`, and `kick`.
+`components/PlatformIcon.tsx` renders SVG icons for `twitch`, `kick` (and `youtube` — kept in code but not used in the UI).
 
 - SVG paths are stored as constants in the `ICONS` object at the top of the file
 - Source: [simpleicons.org](https://simpleicons.org) — search the platform name, copy the SVG path
@@ -268,7 +297,7 @@ Creating a new file requires: knowing where it fits in the structure above, and 
 
 ---
 
-## 6. Auth & Roles
+## 7. Auth & Roles
 
 ### Who logs in
 | User | Logs in? | Why |
@@ -280,10 +309,14 @@ Creating a new file requires: knowing where it fits in the structure above, and 
 **Key principle: streamers are privacy-sensitive accounts.** Many will never log in — they guard their platform credentials and don't want to authorise third-party apps. A streamer should never be required to log in for a report to be filed about snipers in their channel. Their mods handle this.
 
 ### How a mod is verified
-1. Mod logs in via OAuth (Twitch / YouTube)
-2. We call the platform API to confirm they are listed as a mod of the streamer's channel
-3. `StreamerMod` record is created linking `modId → streamerId`
-4. All reports they submit are tagged with both `reportedBy` (the streamer) and `submittedBy` (the mod)
+
+**Twitch (automatic):** On login we call `GET /helix/moderation/channels` to get all channels the user moderates. `StreamerMod` records are created automatically for each. Role is set to `MOD` if any mod channels found.
+
+**Kick (manual only):** Kick has no equivalent API endpoint for mod lookups. Kick mods must be manually assigned by an ADMIN or by the STREAMER themselves via `/my/mods`.
+
+**Manual assignment:** Streamers visit `/my/mods` to search and add any user as their mod. Admins can also manage mods via `/admin`.
+
+All reports a mod submits are tagged with both `reportedBy` (the streamer) and `submittedBy` (the mod).
 
 ### Streamer referenced without account
 A streamer can appear as `reportedBy` on reports **without having an account**. Their platform username is stored as a lightweight `User` record (no OAuth token, `verified: false`). If they ever choose to log in, the record is upgraded to a verified account. Never block report submission because the streamer hasn't logged in.
@@ -318,14 +351,17 @@ When a mod submits a report, verify `reportedBy` matches a channel linked in `St
 
 Do not over-engineer this. There are no private messages, no sensitive personal data, no need for complex ACLs. The threat model is write abuse, not read leakage.
 
+### Role priority on sign-in
+`ADMIN` (env list) > `STREAMER` (has `StreamerProfile` in DB) > `MOD` (Twitch mod API returned channels) > `USER`
+
 ### OAuth providers
-- **Twitch** — primary, most streamers use it
-- **YouTube** — secondary support
-- **Kick** — no official OAuth yet, skip until they release it
+- **Twitch** — primary. Mod detection via Twitch API (`/helix/moderation/channels`). Avatar from `static-cdn.jtvnw.net`.
+- **Kick** — live via OAuth 2.1 (PKCE required). Token exchange uses a server-side proxy (`/api/kick-token-proxy`) because oauth4webapi sends credentials as HTTP Basic Auth but Kick requires them in the POST body. No mod auto-detection — mods must be assigned manually. Kick CDN blocks avatar hotlinking; show `PlatformIcon` instead.
+- **YouTube** — removed. Not streamer-focused enough; adds complexity without benefit.
 
 ---
 
-## 7. Database
+## 8. Database
 
 ```bash
 vercel env pull .env.development.local   # Sync env vars from Vercel (never commit .env)
@@ -338,6 +374,7 @@ npx prisma studio                        # Browse DB in browser
 - `DATABASE_URL` = pooled connection (Prisma runtime)
 - `DIRECT_URL` = direct connection (migrations)
 - All DB access: `import { db } from '@/lib/db'`
+- **After schema changes**: always `rm -rf .next && npx prisma generate && npm run dev` — Turbopack dev cache holds the old Prisma client and will silently use it
 
 ### Auth
 - Config lives in `auth.ts` at the root
@@ -350,7 +387,7 @@ npx prisma studio                        # Browse DB in browser
 
 ---
 
-## 8. Git & Quality Gates
+## 9. Git & Quality Gates
 
 Pre-commit hook runs **two checks** (both must pass):
 1. `tsc --noEmit` — zero TypeScript errors across the whole project
@@ -364,7 +401,7 @@ Branch strategy:
 
 ---
 
-## 9. Browser Extension
+## 10. Browser Extension
 
 Separate repo: **`github.com/JonasBogvad/sniperveto-extension`** (local: `C:\Github\sniperveto-extension`)
 
@@ -376,7 +413,7 @@ Separate repo: **`github.com/JonasBogvad/sniperveto-extension`** (local: `C:\Git
 
 ---
 
-## 10. Quick Reference
+## 11. Quick Reference
 
 ```bash
 npm run dev          # Start dev server (Turbopack, http://localhost:3000)

@@ -23,7 +23,6 @@ enum Role {
 enum Platform {
   TWITCH
   KICK
-  YOUTUBE
 }
 
 enum Severity {
