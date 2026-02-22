@@ -18,6 +18,19 @@
 
 **Keep it simple.** This is not a general-purpose cheat database. It is specifically for *stream sniping* by *known accounts* with *evidence*.
 
+### The core data model — Steam account is the unit, not the streamer
+
+Reports are anchored to a **Steam account**, not to a streamer or a game. This is fundamental:
+
+- A sniper (`SteamAccount`) can have many `Report` records from many different streamers across many different games
+- All those reports stack up on the same Steam ID — one entry in the database, multiple pieces of evidence
+- Any streamer can vote to corroborate a report they didn't file, adding weight from their own experience
+- `reportCount` on each report shows the total reports filed against that Steam ID across the entire community
+
+**This means:** if `76561198XXXX` sniped streamer A in PUBG, streamer B in Rust, and streamer C in Tarkov, all three reports link to the same `SteamAccount`. The database builds a cross-streamer, cross-game evidence file on that person.
+
+**Never break this by scoping reports to a single streamer or a single game.** The cross-community evidence accumulation is the product's core value.
+
 ---
 
 ## 2. Task Tracking
