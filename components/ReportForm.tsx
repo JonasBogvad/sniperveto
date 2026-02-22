@@ -16,6 +16,8 @@ import type { AppUser, ReportFormData } from '@/types';
 interface ReportFormProps {
   user: AppUser | null;
   onSubmit: (data: ReportFormData) => Promise<void> | void;
+  initialSteamId?: string;
+  initialSteamName?: string;
 }
 
 const GAMES = [
@@ -30,10 +32,10 @@ const GAMES = [
   'Other',
 ];
 
-const ReportForm = ({ user, onSubmit }: ReportFormProps) => {
+const ReportForm = ({ user, onSubmit, initialSteamId, initialSteamName }: ReportFormProps) => {
   const [formData, setFormData] = useState<ReportFormData>({
-    steamId: '',
-    steamName: '',
+    steamId: initialSteamId ?? '',
+    steamName: initialSteamName ?? '',
     game: '',
     description: '',
     proofLinks: [''],
