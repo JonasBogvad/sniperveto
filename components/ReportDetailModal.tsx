@@ -122,6 +122,13 @@ const ReportDetailModal = ({ report, open, onClose, user, onVote }: ReportDetail
               </Button>
             </div>
 
+            {/* Appeal badge */}
+            {report.appealCount > 0 && (
+              <p className="text-xs text-amber-400">
+                ⚠ {report.appealCount} appeal{report.appealCount > 1 ? 's' : ''} filed
+              </p>
+            )}
+
             {/* Appeal section */}
             {report && (
               <Link

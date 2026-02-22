@@ -17,6 +17,7 @@ export async function fetchReports(steamId?: string): Promise<Report[]> {
       submittedBy: true,
       proofLinks: true,
       votes: { include: { user: true } },
+      appeals: { select: { id: true } },
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -47,5 +48,6 @@ export async function fetchReports(steamId?: string): Promise<Report[]> {
       total: row.votes.length,
       voters: row.votes.map((v) => v.user.displayName),
     },
+    appealCount: row.appeals.length,
   }));
 }
