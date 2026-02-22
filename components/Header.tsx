@@ -95,14 +95,26 @@ const Header = () => {
                 </Button>
               </div>
             ) : (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => void signIn('twitch')}
-                className="bg-sv-brand hover:bg-sv-brand-2 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm"
-              >
-                Login with Twitch
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => void signIn('twitch')}
+                  className="bg-white/10 hover:bg-white/20 px-2.5 py-1.5 sm:px-3 text-xs sm:text-sm flex items-center gap-1.5 text-sv-text"
+                >
+                  <PlatformIcon platform="twitch" size={13} />
+                  <span className="hidden sm:inline">Twitch</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => void signIn('google')}
+                  className="bg-white/10 hover:bg-white/20 px-2.5 py-1.5 sm:px-3 text-xs sm:text-sm flex items-center gap-1.5 text-sv-text"
+                >
+                  <PlatformIcon platform="youtube" size={13} />
+                  <span className="hidden sm:inline">YouTube</span>
+                </Button>
+              </div>
             )}
           </div>
 

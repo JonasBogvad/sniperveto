@@ -7,19 +7,20 @@ _None_
 
 ### Must Have (MVP blockers)
 - [x] Wire OAuth auth — Twitch live (NextAuth.js v5)
-- [ ] Wire OAuth auth — YouTube (Google provider)
+- [x] Wire OAuth auth — YouTube (Google provider)
 - [ ] Wire OAuth auth — Kick (no official OAuth yet, skip)
 - [x] Test all features in browser (reports load from DB, submit form, vote)
 - [x] Rate limiting & abuse prevention (5 reports/hr, 50 votes/hr per user)
 
 ### Important (core product value)
 - [x] Real mod verification via platform APIs (Twitch API — moderated channels + admin bypass)
-- [ ] Steam profile integration & validation (SteamID lookup, profile display)
-- [ ] Report appeals system
+- [x] Steam profile integration & validation (SteamID lookup, profile display, avatar)
+- [x] Report appeals system
 
 ### Nice to Have
-- [ ] CSV export functionality
-- [ ] Discord/Slack webhook notifications
+- [x] Browser extension — show SniperVeto data on Steam profile pages + quick-report button
+- [x] CSV export functionality
+- [x] Discord webhook notifications
 
 ## Completed
 - [x] Migrate from Vite to Next.js

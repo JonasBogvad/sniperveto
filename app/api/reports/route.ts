@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { fetchReports } from '@/lib/reports';
+import { lookupSteamProfile } from '@/lib/steam';
+import { notifyDiscordNewReport } from '@/lib/discord';
 import type { CreateReportBody } from '@/types';
 
 const toDbPlatform = (p: string): 'TWITCH' | 'KICK' | 'YOUTUBE' => {
@@ -99,6 +101,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }
 
       return newReport;
+    });
+
+    // Enrich SteamAccount with official Steam profile data (best-effort)
+    const steamProfile = await lookupSteamProfile(steamId);
+    if (steamProfile) {
+      await db.steamAccount.update({
+        where: { steamId },
+        data: {
+          avatarUrl:  steamProfile.avatarmedium,
+          profileUrl: steamProfile.profileurl,
+          // Only overwrite name if the submitter left it blank
+          ...((!steamName || steamName === 'Unknown')
+            ? { steamName: steamProfile.personaname }
+            : {}),
+        },
+      });
+    }
+
+    // Discord notification (best-effort)
+    await notifyDiscordNewReport({
+      id:          report.id,
+      steamName:   steamName || steamProfile?.personaname || 'Unknown',
+      steamId,
+      reportedBy:  session.user.username ?? session.user.name ?? 'Unknown',
+      game,
+      severity:    severity ?? 'low',
+      description,
     });
 
     return NextResponse.json({ id: report.id }, { status: 201 });

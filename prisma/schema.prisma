@@ -39,6 +39,13 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum AppealStatus {
+  PENDING
+  REVIEWED
+  ACCEPTED
+  REJECTED
+}
+
 // ─────────────────────────────────────────────
 // USER — streamers, mods, and reporters
 // ─────────────────────────────────────────────
@@ -136,6 +143,7 @@ model Report {
   submittedBy  User?        @relation("SubmittedBy", fields: [submittedById], references: [id])
   proofLinks   ProofLink[]
   votes        ReportVote[]
+  appeals      ReportAppeal[]
 
   @@index([steamAccountId])
   @@index([reportedById])
@@ -175,4 +183,24 @@ model ReportVote {
   @@unique([reportId, userId]) // one vote per user per report
   @@index([reportId])
   @@index([userId, createdAt]) // for rate limiting queries
+}
+
+// ─────────────────────────────────────────────
+// REPORT APPEAL — filed by the reported Steam account owner
+// ─────────────────────────────────────────────
+
+model ReportAppeal {
+  id        String       @id @default(cuid())
+  reportId  String
+  steamId   String       // must match the report's steamAccount.steamId
+  reason    String       @db.Text
+  contact   String?      // optional email or other contact
+  status    AppealStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([status])
 }
