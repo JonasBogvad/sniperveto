@@ -18,6 +18,16 @@ export default function AboutPage() {
         Nothing more, nothing less.
       </p>
 
+      <div className="pt-4 border-t border-white/10 space-y-3">
+        <h2 className="text-sm font-semibold">Been reported?</h2>
+        <p className="text-sv-text-2 text-sm leading-relaxed">
+          Reports are community-submitted and represent the opinion of the person who filed
+          them — they are not verified facts or official bans. If you believe a report about
+          your Steam account is incorrect, you can file an appeal directly on the report page.
+          We review all appeals.
+        </p>
+      </div>
+
       <div className="pt-2 border-t border-white/10 space-y-1">
         <p className="text-sm text-sv-text-2">
           Built by{' '}
