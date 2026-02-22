@@ -19,6 +19,18 @@ export async function POST(
   try {
     const { id: reportId } = await params;
 
+    // Rate limit: max 50 votes per user per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentVotes = await db.reportVote.count({
+      where: { userId: session.user.id, createdAt: { gte: oneHourAgo } },
+    });
+    if (recentVotes >= 50) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Max 50 votes per hour.' },
+        { status: 429 },
+      );
+    }
+
     const report = await db.report.findUnique({ where: { id: reportId } });
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
