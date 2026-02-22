@@ -46,6 +46,26 @@ export async function POST(
     );
   }
 
+  // One active appeal at a time. Rejected appeals allow re-appeal after COOLOFF_DAYS.
+  const COOLOFF_DAYS = 30;
+  const existing = await db.reportAppeal.findFirst({
+    where: { reportId, steamId: verifiedSteamId },
+    orderBy: { createdAt: 'desc' },
+  });
+  if (existing) {
+    if (existing.status !== 'REJECTED') {
+      return NextResponse.json({ error: 'Appeal already filed for this report' }, { status: 409 });
+    }
+    const cooloffEnd = new Date(existing.updatedAt.getTime() + COOLOFF_DAYS * 24 * 60 * 60 * 1000);
+    if (new Date() < cooloffEnd) {
+      return NextResponse.json(
+        { error: 'Appeal cooldown active', cooloffUntil: cooloffEnd.toISOString() },
+        { status: 429 },
+      );
+    }
+    // Past cool-off: allow new appeal (old rejected record stays in DB for history)
+  }
+
   await db.reportAppeal.create({
     data: {
       reportId,

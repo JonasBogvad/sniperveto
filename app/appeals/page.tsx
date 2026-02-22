@@ -1,70 +1,53 @@
-import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import { db } from '@/lib/db';
+import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
+import { db } from '@/lib/db';
+import AppealsManager from './AppealsManager';
 
 export const metadata: Metadata = { title: 'Appeals — SniperVeto' };
 
 export default async function AppealsPage() {
   const session = await auth();
-  if (session?.user?.role !== 'ADMIN') redirect('/');
+  if (!session?.user) redirect('/');
+
+  const role = session.user.role;
+  if (!['MOD', 'STREAMER', 'ADMIN'].includes(role)) redirect('/');
 
   const appeals = await db.reportAppeal.findMany({
-    include: { report: { include: { steamAccount: true } } },
+    include: {
+      report: {
+        include: {
+          steamAccount: true,
+          reportedBy: true,
+        },
+      },
+    },
     orderBy: { createdAt: 'desc' },
   });
 
+  const serialized = appeals.map((a) => ({
+    id: a.id,
+    reportId: a.reportId,
+    steamId: a.steamId,
+    steamName: a.report.steamAccount.steamName,
+    reason: a.reason,
+    contact: a.contact,
+    status: a.status as string,
+    reviewNote: a.reviewNote,
+    createdAt: a.createdAt.toISOString(),
+    game: a.report.game,
+    reportedBy: a.report.reportedBy.displayName,
+  }));
+
   return (
-    <div>
+    <div className="max-w-3xl mx-auto px-4">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-1">Appeals</h2>
-        <p className="text-sv-text-2 text-sm">{appeals.length} total</p>
+        <h1 className="text-xl font-bold">Appeals</h1>
+        <p className="text-sv-text-3 text-sm mt-1">
+          Review and action appeals from reported Steam accounts.
+        </p>
       </div>
-
-      {appeals.length === 0 ? (
-        <p className="text-sv-text-3 text-sm">No appeals yet.</p>
-      ) : (
-        <div className="space-y-3">
-          {appeals.map((appeal) => (
-            <div
-              key={appeal.id}
-              className="bg-sv-surface border border-white/10 rounded-xl p-4 space-y-2"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-semibold text-sm">
-                    {appeal.report.steamAccount.steamName}
-                  </p>
-                  <p className="font-mono text-xs text-sv-text-3">{appeal.steamId}</p>
-                </div>
-                <span
-                  className={`text-xs font-bold px-2 py-0.5 rounded ${
-                    appeal.status === 'PENDING'
-                      ? 'bg-sv-warn/20 text-sv-warn'
-                      : appeal.status === 'ACCEPTED'
-                        ? 'bg-sv-clean/20 text-sv-clean'
-                        : appeal.status === 'REJECTED'
-                          ? 'bg-sv-danger/20 text-sv-danger'
-                          : 'bg-white/10 text-sv-text-2'
-                  }`}
-                >
-                  {appeal.status}
-                </span>
-              </div>
-
-              <p className="text-sm text-sv-text">{appeal.reason}</p>
-
-              {appeal.contact && (
-                <p className="text-xs text-sv-text-3">Contact: {appeal.contact}</p>
-              )}
-
-              <p className="text-xs text-sv-text-3">
-                Filed {appeal.createdAt.toISOString().split('T')[0]} — Report ID: {appeal.reportId}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
+      <AppealsManager appeals={serialized} />
     </div>
   );
 }

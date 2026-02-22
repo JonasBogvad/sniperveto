@@ -59,38 +59,89 @@ Reports are anchored to a **Steam account**, not to a streamer or a game. This i
 ```
 app/
   api/
+    auth/
+      [...nextauth]/
+        route.ts            # NextAuth handler
+      steam/
+        route.ts            # Steam OpenID redirect (appeal verification)
+        callback/
+          route.ts          # Steam OpenID callback → sets steam_appeal_token cookie
+    appeals/
+      [id]/
+        review/
+          route.ts          # POST — accept/reject an appeal (MOD/STREAMER/ADMIN only)
     reports/
       route.ts              # GET (list) + POST (create)
       [id]/
+        appeal/
+          route.ts          # POST — file appeal (requires steam_appeal_token cookie)
         vote/
           route.ts          # POST (upsert vote)
-  layout.tsx
-  page.tsx                  # / — sniper database list (Client Component)
+  about/
+    page.tsx                # /about — static info page
+  appeal/
+    [id]/
+      page.tsx              # /appeal/[id] — Server Component, reads DB + cookie
+      AppealForm.tsx        # Client Component — Steam login or appeal form
+  appeals/
+    page.tsx                # /appeals — appeal management (MOD/STREAMER/ADMIN only)
+    AppealsManager.tsx      # Client Component — accept/reject UI
+  privacy/
+    page.tsx                # /privacy — Privacy Policy
   report/
     page.tsx                # /report — submit a report (Client Component)
   stats/
     page.tsx                # /stats  — statistics (Server Component — fetches DB directly)
+  terms/
+    page.tsx                # /terms — Terms of Service
+  layout.tsx
+  page.tsx                  # / — sniper database list (Client Component)
 components/
   ui/                       # shadcn primitives (Button, Card, Dialog, etc.)
-  Header.tsx
+  Header.tsx                # Nav + auth — Appeals link shown to MOD/STREAMER/ADMIN
   PlatformIcon.tsx          # SVG icons for Twitch / YouTube / Kick
   ReportCard.tsx
-  ReportDetailModal.tsx
+  ReportDetailModal.tsx     # Opens from DB list; links to /appeal/[id]
   ReportForm.tsx
   SessionProviderWrapper.tsx
   SeverityBadge.tsx
   StatsView.tsx
 lib/
   db.ts                     # Prisma singleton (import { db } from '@/lib/db')
+  discord.ts                # Discord webhook helpers (notifyDiscordNewReport, notifyDiscordNewAppeal)
   reports.ts                # fetchReports() — shared by API + stats page
+  steam-appeal.ts           # HMAC-SHA256 signed token for Steam appeal verification
   user-context.tsx          # useUser() hook — thin wrapper over useSession()
   utils.ts                  # cn() utility
 prisma/
   schema.prisma             # DB schema
 prisma.config.ts            # Prisma connection config (reads from .env)
 types/
-  index.ts                  # All shared TypeScript types
+  index.ts                  # All shared TypeScript types (Report, Appeal, AppUser, …)
 ```
+
+### Appeal flow
+
+1. Reported person visits `/appeal/[id]`
+2. Clicks "Login with Steam" → redirected to Steam OpenID → callback sets `steam_appeal_token` cookie (15-min HMAC, verified identity)
+3. Page confirms ownership; user fills reason + optional Discord username
+4. POST `/api/reports/[id]/appeal` — enforces one appeal per report, notifies Discord webhook
+5. Success screen tells them to join Discord to follow up
+6. Mods/streamers visit `/appeals` to accept or reject
+
+### Environment variables
+
+| Variable | Required | Notes |
+|---|---|---|
+| `DATABASE_URL` | Yes | Pooled Neon connection |
+| `DIRECT_URL` | Yes | Direct Neon connection (migrations) |
+| `AUTH_SECRET` | Yes | NextAuth + appeal token signing |
+| `AUTH_TWITCH_ID` / `AUTH_TWITCH_SECRET` | Yes | Twitch OAuth |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Yes | YouTube OAuth |
+| `STEAM_API_KEY` | Yes | Steam OpenID verification |
+| `DISCORD_WEBHOOK_URL` | Yes | Report + appeal notifications |
+| `AUTH_ADMIN_USERNAMES` | Optional | Comma-separated platform usernames granted ADMIN role |
+| `NEXT_PUBLIC_DISCORD_INVITE` | Optional | Discord invite link shown on appeal success screen |
 
 ---
 
