@@ -27,26 +27,37 @@ async function fetchTwitchModeratedChannels(
   accessToken: string,
   twitchUserId: string,
 ): Promise<TwitchModeratedChannel[]> {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    'Client-Id': process.env.AUTH_TWITCH_ID ?? '',
+  };
+  const results: TwitchModeratedChannel[] = [];
+  let cursor: string | undefined;
+
   try {
-    const res = await fetch(
-      `https://api.twitch.tv/helix/moderation/channels?user_id=${twitchUserId}&first=100`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Client-Id': process.env.AUTH_TWITCH_ID ?? '',
-        },
-      },
-    );
-    if (!res.ok) {
-      console.error('[auth] Twitch mod channels fetch failed:', res.status);
-      return [];
-    }
-    const json = (await res.json()) as { data: TwitchModeratedChannel[] };
-    return json.data ?? [];
+    do {
+      const url = new URL('https://api.twitch.tv/helix/moderation/channels');
+      url.searchParams.set('user_id', twitchUserId);
+      url.searchParams.set('first', '100');
+      if (cursor) url.searchParams.set('after', cursor);
+
+      const res = await fetch(url.toString(), { headers });
+      if (!res.ok) {
+        console.error('[auth] Twitch mod channels fetch failed:', res.status);
+        break;
+      }
+      const json = (await res.json()) as {
+        data: TwitchModeratedChannel[];
+        pagination?: { cursor?: string };
+      };
+      results.push(...(json.data ?? []));
+      cursor = json.pagination?.cursor;
+    } while (cursor);
   } catch (err) {
     console.error('[auth] fetchTwitchModeratedChannels error:', err);
-    return [];
   }
+
+  return results;
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -54,7 +65,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Twitch({
       authorization: {
         params: {
-          scope: 'openid user:read:email user:read:moderated_channels',
+          scope: 'openid user:read:email moderation:read',
         },
       },
     }),
