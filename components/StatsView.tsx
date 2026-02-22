@@ -13,7 +13,9 @@ const StatsView = ({ reports }: StatsViewProps) => {
     return acc;
   }, {});
 
-  const mostReportedGame = Object.entries(gameBreakdown).sort((a, b) => b[1] - a[1])[0];
+  const gameEntries = Object.entries(gameBreakdown).sort((a, b) => b[1] - a[1]);
+  const mostReportedGame = gameEntries[0];
+  const maxCount = gameEntries[0]?.[1] ?? 1;
 
   return (
     <div className="max-w-2xl mx-auto px-4">
@@ -39,22 +41,20 @@ const StatsView = ({ reports }: StatsViewProps) => {
       <div className="bg-slate-800/50 border border-white/10 rounded-xl p-4 sm:p-5">
         <h3 className="font-bold mb-3 sm:mb-4 text-sm sm:text-base">By Game</h3>
         <div className="space-y-3">
-          {Object.entries(gameBreakdown)
-            .sort((a, b) => b[1] - a[1])
-            .map(([game, count]) => (
-              <div key={game}>
-                <div className="flex justify-between text-xs sm:text-sm mb-1">
-                  <span className="truncate mr-2">{game}</span>
-                  <span className="text-gray-400 flex-shrink-0">{count}</span>
-                </div>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
-                    style={{ width: `${(count / totalReports) * 100}%` }}
-                  />
-                </div>
+          {gameEntries.map(([game, count]) => (
+            <div key={game}>
+              <div className="flex justify-between text-xs sm:text-sm mb-1">
+                <span className="truncate mr-2">{game}</span>
+                <span className="text-gray-400 flex-shrink-0">{count}</span>
               </div>
-            ))}
+              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
+                  style={{ width: `${(count / maxCount) * 75}%` }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
