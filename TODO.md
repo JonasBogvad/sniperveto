@@ -10,7 +10,7 @@ _None_
 - [ ] Wire OAuth auth — YouTube (Google provider)
 - [ ] Wire OAuth auth — Kick (no official OAuth yet, skip)
 - [x] Test all features in browser (reports load from DB, submit form, vote)
-- [ ] Rate limiting & abuse prevention (API routes)
+- [x] Rate limiting & abuse prevention (5 reports/hr, 50 votes/hr per user)
 
 ### Important (core product value)
 - [ ] Real mod verification via platform APIs (confirm user is actually a mod)
