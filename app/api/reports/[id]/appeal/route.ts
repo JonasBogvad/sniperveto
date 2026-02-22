@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { notifyDiscordNewAppeal } from '@/lib/discord';
 
 // ─────────────────────────────────────────────
 // POST /api/reports/[id]/appeal — public (no auth)
@@ -47,6 +48,14 @@ export async function POST(
       reason: reason.trim(),
       contact: contact?.trim() || null,
     },
+  });
+
+  void notifyDiscordNewAppeal({
+    reportId,
+    steamId,
+    steamName: report.steamAccount.steamName,
+    reason: reason.trim(),
+    contact: contact?.trim() || null,
   });
 
   return NextResponse.json({ ok: true }, { status: 201 });
