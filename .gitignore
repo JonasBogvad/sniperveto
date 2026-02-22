@@ -23,6 +23,7 @@ build/
 .cache/
 .next/
 out/
+tsconfig.tsbuildinfo
 
 # Logs
 *.log
@@ -44,3 +45,7 @@ coverage/
 *.bak
 *.tmp
 *.temp
+
+/lib/generated/prisma
+
+.vercel

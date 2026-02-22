@@ -4,8 +4,9 @@
 _None_
 
 ## Pending
-- [ ] Set up Git repository (`git init`)
-- [ ] Test all features in browser
+- [x] Migrate view-state routing → Next.js App Router file routes (`/report`, `/stats`)
+- [ ] Wire OAuth auth (NextAuth.js — Twitch, Kick, YouTube)
+- [ ] Test all features in browser (reports load from DB, submit form, vote)
 
 ## Future Features
 - [ ] Backend API routes (Next.js API)
