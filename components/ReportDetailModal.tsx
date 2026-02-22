@@ -1,7 +1,7 @@
 'use client';
 
 import PlatformIcon from '@/components/PlatformIcon';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import type { Report, AppUser } from '@/types';
 
@@ -21,6 +21,7 @@ const ReportDetailModal = ({ report, open, onClose, user, onVote }: ReportDetail
       <DialogContent className="bg-slate-800 border-white/10 text-white sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl truncate">{report?.steamName}</DialogTitle>
+          <DialogDescription className="sr-only">Stream sniper report details</DialogDescription>
           <p className="text-gray-500 font-mono text-xs sm:text-sm truncate">{report?.steamId}</p>
         </DialogHeader>
 
