@@ -13,7 +13,7 @@ _None_
 - [x] Rate limiting & abuse prevention (5 reports/hr, 50 votes/hr per user)
 
 ### Important (core product value)
-- [ ] Real mod verification via platform APIs (confirm user is actually a mod)
+- [x] Real mod verification via platform APIs (Twitch API — moderated channels + admin bypass)
 - [ ] Steam profile integration & validation (SteamID lookup, profile display)
 - [ ] Report appeals system
 
