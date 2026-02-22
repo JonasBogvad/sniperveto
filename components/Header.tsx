@@ -28,8 +28,8 @@ const Header = () => {
             <Image
               src="/logo.png"
               alt="SniperVeto"
-              width={140}
-              height={50}
+              width={621}
+              height={190}
               className="h-28 w-auto sm:h-32"
               priority
               unoptimized
