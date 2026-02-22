@@ -19,10 +19,10 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Twitch avatars + data URIs for placeholders
       "img-src 'self' data: blob: https://static-cdn.jtvnw.net",
-      "font-src 'self'",
+      "font-src 'self' https://fonts.gstatic.com",
       // API routes and NextAuth callbacks
       "connect-src 'self'",
       // No frames anywhere
