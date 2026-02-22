@@ -32,6 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 SniperVeto — Community stream sniper database
               </p>
               <div className="flex gap-4 text-xs text-sv-text-3">
+                <Link href="/about" className="hover:text-sv-text-2 transition-colors">
+                  About
+                </Link>
                 <Link href="/privacy" className="hover:text-sv-text-2 transition-colors">
                   Privacy Policy
                 </Link>
