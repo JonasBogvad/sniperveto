@@ -3,7 +3,6 @@ import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { fetchReports } from '@/lib/reports';
 import type { CreateReportBody } from '@/types';
-import type { Prisma } from '@prisma/client';
 
 const toDbPlatform = (p: string): 'TWITCH' | 'KICK' | 'YOUTUBE' => {
   const map: Record<string, 'TWITCH' | 'KICK' | 'YOUTUBE'> = {
@@ -57,7 +56,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const dbPlatform = toDbPlatform(session.user.platform);
 
-    const report = await db.$transaction(async (tx: Prisma.TransactionClient) => {
+    const report = await db.$transaction(async (tx: Parameters<Parameters<typeof db.$transaction>[0]>[0]) => {
       // 1. Upsert steam account
       const steamAccount = await tx.steamAccount.upsert({
         where: { steamId },
