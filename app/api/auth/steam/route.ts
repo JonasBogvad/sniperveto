@@ -1,20 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const SteamAuth = require('node-steam-openid') as {
+  new (opts: { realm: string; returnUrl: string; apiKey: string }): {
+    getRedirectUrl(): Promise<string>;
+  };
+};
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const returnTo = req.nextUrl.searchParams.get('returnTo') ?? '/';
   const origin = req.nextUrl.origin;
-  const callbackUrl = `${origin}/api/auth/steam/callback?returnTo=${encodeURIComponent(returnTo)}`;
 
-  const params = new URLSearchParams({
-    'openid.ns': 'http://specs.openid.net/auth/2.0',
-    'openid.mode': 'checkid_setup',
-    'openid.return_to': callbackUrl,
-    'openid.realm': origin,
-    'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
-    'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
+  const steam = new SteamAuth({
+    realm: origin,
+    returnUrl: `${origin}/api/auth/steam/callback`,
+    apiKey: process.env.STEAM_API_KEY!,
   });
 
-  return NextResponse.redirect(
-    `https://steamcommunity.com/openid/login?${params.toString()}`,
-  );
+  const redirectUrl = await steam.getRedirectUrl();
+
+  // Store returnTo in a short-lived cookie — cleaner than passing it through Steam's redirect
+  const response = NextResponse.redirect(redirectUrl);
+  response.cookies.set('steam_auth_return', returnTo, {
+    httpOnly: true,
+    maxAge: 300,
+    sameSite: 'lax',
+    path: '/',
+  });
+  return response;
 }

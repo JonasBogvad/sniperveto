@@ -1,43 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAppealToken } from '@/lib/steam-appeal';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const SteamAuth = require('node-steam-openid') as {
+  new (opts: { realm: string; returnUrl: string; apiKey: string }): {
+    authenticate(req: { url: string }): Promise<{ steamid: string }>;
+  };
+};
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const { searchParams, origin } = req.nextUrl;
-  const returnTo = searchParams.get('returnTo') ?? '/';
+  const origin = req.nextUrl.origin;
+  const returnTo = req.cookies.get('steam_auth_return')?.value ?? '/';
 
-  // Build verification params — same as callback but mode = check_authentication
-  const verifyParams = new URLSearchParams();
-  searchParams.forEach((value, key) => {
-    if (key === 'returnTo') return;
-    verifyParams.set(key, key === 'openid.mode' ? 'check_authentication' : value);
+  const steam = new SteamAuth({
+    realm: origin,
+    returnUrl: `${origin}/api/auth/steam/callback`,
+    apiKey: process.env.STEAM_API_KEY!,
   });
 
-  let verifyText = '';
   try {
-    const res = await fetch('https://steamcommunity.com/openid/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: verifyParams.toString(),
+    const user = await steam.authenticate({ url: req.url });
+
+    const response = NextResponse.redirect(new URL(returnTo, origin));
+    response.cookies.set('steam_appeal_token', createAppealToken(user.steamid), {
+      httpOnly: true,
+      maxAge: 900,
+      sameSite: 'lax',
+      path: '/',
     });
-    verifyText = await res.text();
-  } catch {
+    response.cookies.delete('steam_auth_return');
+    return response;
+  } catch (err) {
+    console.error('[steam auth] authentication failed:', err);
     return NextResponse.redirect(new URL('/', origin));
   }
-
-  if (!verifyText.includes('is_valid:true')) {
-    return NextResponse.redirect(new URL('/', origin));
-  }
-
-  const claimedId = searchParams.get('openid.claimed_id') ?? '';
-  const steamId = claimedId.match(/\/id\/(\d+)$/)?.[1];
-  if (!steamId) return NextResponse.redirect(new URL('/', origin));
-
-  const response = NextResponse.redirect(new URL(returnTo, origin));
-  response.cookies.set('steam_appeal_token', createAppealToken(steamId), {
-    httpOnly: true,
-    maxAge: 900,
-    sameSite: 'lax',
-    path: '/',
-  });
-  return response;
 }
