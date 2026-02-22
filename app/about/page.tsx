@@ -28,18 +28,7 @@ export default function AboutPage() {
         </p>
       </div>
 
-      <div className="pt-2 border-t border-white/10 space-y-1">
-        <p className="text-sm text-sv-text-2">
-          Built by{' '}
-          <a
-            href="https://www.linkedin.com/in/jonasbogvad/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sv-text hover:text-sv-text-2 transition-colors"
-          >
-            Jonas Bøgvad
-          </a>
-        </p>
+      <div className="pt-2 border-t border-white/10">
         <p className="text-xs text-sv-text-3">
           Questions or concerns? Open an issue on{' '}
           <a
