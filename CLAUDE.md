@@ -162,7 +162,64 @@ Creating a new file requires: knowing where it fits in the structure above, and 
 
 ---
 
-## 6. Database
+## 6. Auth & Roles
+
+### Who logs in
+| User | Logs in? | Why |
+|---|---|---|
+| **Mod** | Yes — required | Must prove they moderate the channel they're reporting on behalf of |
+| **Streamer** | Optional | Can log in to manage their own reports, but many won't — **never require it** |
+| **Viewer / public** | Never | Read-only access to the database |
+
+**Key principle: streamers are privacy-sensitive accounts.** Many will never log in — they guard their platform credentials and don't want to authorise third-party apps. A streamer should never be required to log in for a report to be filed about snipers in their channel. Their mods handle this.
+
+### How a mod is verified
+1. Mod logs in via OAuth (Twitch / YouTube)
+2. We call the platform API to confirm they are listed as a mod of the streamer's channel
+3. `StreamerMod` record is created linking `modId → streamerId`
+4. All reports they submit are tagged with both `reportedBy` (the streamer) and `submittedBy` (the mod)
+
+### Streamer referenced without account
+A streamer can appear as `reportedBy` on reports **without having an account**. Their platform username is stored as a lightweight `User` record (no OAuth token, `verified: false`). If they ever choose to log in, the record is upgraded to a verified account. Never block report submission because the streamer hasn't logged in.
+
+### Role capabilities
+| Action | Public | Streamer (logged in) | Mod (verified) |
+|---|---|---|---|
+| Browse reports | ✅ | ✅ | ✅ |
+| Submit report | ❌ | ✅ | ✅ (on behalf of their streamer) |
+| Vote / corroborate | ❌ | ✅ | ✅ |
+| Delete own report | ❌ | ✅ | ✅ |
+| Admin actions | ❌ | ❌ | ❌ (`ADMIN` role only) |
+
+### Data visibility — keep it simple
+SniperVeto is a **public database by design**. Reports are meant to be seen by everyone — that is the product. Do not add row-level read restrictions or per-user data isolation. There is no private data between users.
+
+**What is public (no auth required):**
+- All reports and their details
+- Vote counts
+- Submitter attribution (streamer name, mod name) — trust depends on knowing who filed what
+
+**What requires auth (write guards only):**
+| Action | Guard |
+|---|---|
+| Submit a report | Session user must be `MOD` or `STREAMER` role |
+| `reportedBy` field | Must be the session user's own channel, or a channel they have a `StreamerMod` record for |
+| Vote | One per user per report — enforced by DB `@@unique([reportId, userId])` |
+| Delete a report | Only the original submitter or the streamer the report is about |
+
+**The critical check — cross-channel impersonation:**
+When a mod submits a report, verify `reportedBy` matches a channel linked in `StreamerMod`. A mod of Stream X must not be able to file reports on behalf of Stream Y.
+
+Do not over-engineer this. There are no private messages, no sensitive personal data, no need for complex ACLs. The threat model is write abuse, not read leakage.
+
+### OAuth providers
+- **Twitch** — primary, most streamers use it
+- **YouTube** — secondary support
+- **Kick** — no official OAuth yet, skip until they release it
+
+---
+
+## 7. Database
 
 ```bash
 vercel env pull .env.development.local   # Sync env vars from Vercel (never commit .env)
@@ -181,7 +238,7 @@ Auth is not yet built. Until it is, API routes **upsert temporary User records**
 
 ---
 
-## 7. Git & Quality Gates
+## 8. Git & Quality Gates
 
 Pre-commit hook runs **two checks** (both must pass):
 1. `tsc --noEmit` — zero TypeScript errors across the whole project
@@ -195,7 +252,7 @@ Branch strategy:
 
 ---
 
-## 8. Quick Reference
+## 9. Quick Reference
 
 ```bash
 npm run dev          # Start dev server (Turbopack, http://localhost:3000)

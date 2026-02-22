@@ -5,12 +5,12 @@ import SeverityBadge from '@/components/SeverityBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Report, MockUser } from '@/types';
+import type { Report, AppUser } from '@/types';
 
 interface ReportCardProps {
   report: Report;
   onClick: (report: Report) => void;
-  user: MockUser | null;
+  user: AppUser | null;
   onVote: (reportId: string) => void;
 }
 

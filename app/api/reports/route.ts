@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { fetchReports } from '@/lib/reports';
 import type { CreateReportBody } from '@/types';
 
-// Maps frontend platform string → DB enum string
 const toDbPlatform = (p: string): 'TWITCH' | 'KICK' | 'YOUTUBE' => {
   const map: Record<string, 'TWITCH' | 'KICK' | 'YOUTUBE'> = {
     twitch: 'TWITCH',
@@ -23,7 +23,7 @@ const toDbSeverity = (s?: string): 'LOW' | 'MEDIUM' | 'HIGH' => {
 };
 
 // ─────────────────────────────────────────────
-// GET /api/reports
+// GET /api/reports — public
 // ─────────────────────────────────────────────
 export async function GET(): Promise<NextResponse> {
   try {
@@ -36,21 +36,25 @@ export async function GET(): Promise<NextResponse> {
 }
 
 // ─────────────────────────────────────────────
-// POST /api/reports
-// Creates SteamAccount (upsert) + Report + ProofLinks in a transaction.
-// Upserts temporary User records until real auth is wired.
+// POST /api/reports — requires auth
+// Uses session user as the reporter. No user upsert needed — they
+// already exist in the DB from the OAuth sign-in callback.
 // ─────────────────────────────────────────────
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = (await req.json()) as CreateReportBody;
-    const { steamId, steamName, game, platform, description, proofLinks, severity, reportedBy, submittedBy } = body;
+    const { steamId, steamName, game, description, proofLinks, severity } = body;
 
-    if (!steamId || !game || !platform || !description || !reportedBy?.username) {
+    if (!steamId || !game || !description) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const dbPlatform = toDbPlatform(platform);
-    const reporterPlatform = toDbPlatform(reportedBy.platform);
+    const dbPlatform = toDbPlatform(session.user.platform);
 
     const report = await db.$transaction(async (tx) => {
       // 1. Upsert steam account
@@ -60,40 +64,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         update: { steamName: steamName || 'Unknown' },
       });
 
-      // 2. Upsert reporter user (temp until auth is built)
-      const reporter = await tx.user.upsert({
-        where: { platformId_platform: { platformId: reportedBy.username, platform: reporterPlatform } },
-        create: {
-          username: reportedBy.username,
-          displayName: reportedBy.username,
-          platform: reporterPlatform,
-          platformId: reportedBy.username,
-        },
-        update: {},
-      });
-
-      // 3. Optionally upsert submitter user
-      let submitter = null;
-      if (submittedBy?.username) {
-        const submitterPlatform = toDbPlatform(submittedBy.platform);
-        submitter = await tx.user.upsert({
-          where: { platformId_platform: { platformId: submittedBy.username, platform: submitterPlatform } },
-          create: {
-            username: submittedBy.username,
-            displayName: submittedBy.username,
-            platform: submitterPlatform,
-            platformId: submittedBy.username,
-          },
-          update: {},
-        });
-      }
-
-      // 4. Create report
+      // 2. Create report — session.user.id is the authenticated user
       const newReport = await tx.report.create({
         data: {
           steamAccountId: steamAccount.id,
-          reportedById: reporter.id,
-          submittedById: submitter?.id ?? null,
+          reportedById: session.user.id,
+          submittedById: null,
           game,
           platform: dbPlatform,
           severity: toDbSeverity(severity),
@@ -101,14 +77,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         },
       });
 
-      // 5. Create proof links
-      if (proofLinks && proofLinks.length > 0) {
-        const validLinks = proofLinks.filter((url) => url.trim() !== '');
-        if (validLinks.length > 0) {
-          await tx.proofLink.createMany({
-            data: validLinks.map((url) => ({ reportId: newReport.id, url })),
-          });
-        }
+      // 3. Create proof links
+      const validLinks = (proofLinks ?? []).filter((url) => url.trim() !== '');
+      if (validLinks.length > 0) {
+        await tx.proofLink.createMany({
+          data: validLinks.map((url) => ({ reportId: newReport.id, url })),
+        });
       }
 
       return newReport;

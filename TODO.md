@@ -4,20 +4,20 @@
 _None_
 
 ## Pending
-- [x] Migrate view-state routing → Next.js App Router file routes (`/report`, `/stats`)
+
+### Must Have (MVP blockers)
 - [ ] Wire OAuth auth (NextAuth.js — Twitch, Kick, YouTube)
 - [ ] Test all features in browser (reports load from DB, submit form, vote)
+- [ ] Rate limiting & abuse prevention (API routes)
 
-## Future Features
-- [ ] Backend API routes (Next.js API)
-- [ ] Database integration (PostgreSQL/Prisma)
-- [ ] OAuth authentication (Twitch, YouTube, Kick)
-- [ ] Real mod verification via platform APIs
-- [ ] Rate limiting & abuse prevention
+### Important (core product value)
+- [ ] Real mod verification via platform APIs (confirm user is actually a mod)
+- [ ] Steam profile integration & validation (SteamID lookup, profile display)
 - [ ] Report appeals system
+
+### Nice to Have
 - [ ] CSV export functionality
 - [ ] Discord/Slack webhook notifications
-- [ ] Steam profile integration & validation
 
 ## Completed
 - [x] Migrate from Vite to Next.js
@@ -26,11 +26,10 @@ _None_
 - [x] Create component structure
 - [x] Set up path aliases (@/)
 - [x] Mobile-first responsive design
-- [x] Database-ready data layer structure
 - [x] Set up shadcn/ui component library
-- [x] Refactor SeverityBadge to use shadcn Badge
-- [x] Refactor LoginModal to use shadcn Dialog
-- [x] Refactor ReportDetailModal to use shadcn Dialog
-- [x] Refactor ReportForm to use shadcn Input/Select
-- [x] Refactor ReportCard to use shadcn Card
-- [x] Refactor Header buttons to use shadcn Button
+- [x] Refactor all components to shadcn/ui primitives
+- [x] Full TypeScript migration (strict, no any)
+- [x] Database integration (PostgreSQL/Prisma + Neon)
+- [x] Backend API routes (GET/POST /api/reports, POST /api/reports/[id]/vote)
+- [x] Migrate view-state routing → Next.js App Router file routes (/report, /stats)
+- [x] Strict pre-commit hooks (tsc + eslint --max-warnings=0)

@@ -1,24 +1,18 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import ReportForm from '@/components/ReportForm';
 import { useUser } from '@/lib/user-context';
 import type { ReportFormData } from '@/types';
 
 export default function ReportPage() {
   const { user } = useUser();
+  const { data: session } = useSession();
   const router = useRouter();
 
   const handleSubmit = async (formData: ReportFormData) => {
-    if (!user) return;
-
-    const reportedBy =
-      user.type === 'mod'
-        ? { username: user.streamerName ?? user.name, platform: user.platform }
-        : { username: user.name, platform: user.platform };
-
-    const submittedBy =
-      user.type === 'mod' ? { username: user.name, platform: user.platform } : undefined;
+    if (!session?.user) return;
 
     const res = await fetch('/api/reports', {
       method: 'POST',
@@ -27,12 +21,9 @@ export default function ReportPage() {
         steamId: formData.steamId,
         steamName: formData.steamName,
         game: formData.game,
-        platform: user.platform,
         description: formData.description,
         proofLinks: formData.proofLinks.filter((l) => l.trim() !== ''),
         severity: 'low',
-        reportedBy,
-        submittedBy,
       }),
     });
 
@@ -41,7 +32,5 @@ export default function ReportPage() {
     }
   };
 
-  return (
-    <ReportForm user={user} onSubmit={handleSubmit} />
-  );
+  return <ReportForm user={user} onSubmit={handleSubmit} />;
 }

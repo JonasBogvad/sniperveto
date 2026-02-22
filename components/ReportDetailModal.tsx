@@ -3,13 +3,13 @@
 import PlatformIcon from '@/components/PlatformIcon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import type { Report, MockUser } from '@/types';
+import type { Report, AppUser } from '@/types';
 
 interface ReportDetailModalProps {
   report: Report | null;
   open: boolean;
   onClose: () => void;
-  user: MockUser | null;
+  user: AppUser | null;
   onVote: (reportId: string) => void;
 }
 

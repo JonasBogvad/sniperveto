@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { UserProvider } from '@/lib/user-context';
+import SessionProviderWrapper from '@/components/SessionProviderWrapper';
 import Header from '@/components/Header';
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-        <UserProvider>
+        <SessionProviderWrapper>
           <Header />
           <main className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-6">
             {children}
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               SniperVeto — Community stream sniper database
             </p>
           </footer>
-        </UserProvider>
+        </SessionProviderWrapper>
       </body>
     </html>
   );

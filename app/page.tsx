@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import ReportCard from '@/components/ReportCard';
 import ReportDetailModal from '@/components/ReportDetailModal';
-import { mockStreamers } from '@/data/mockData';
 import { useUser } from '@/lib/user-context';
 import type { Report } from '@/types';
 
 export default function HomePage() {
   const { user } = useUser();
+  const { data: session } = useSession();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -30,30 +31,19 @@ export default function HomePage() {
   }, []);
 
   const handleVote = async (reportId: string) => {
-    if (!user) return;
+    if (!session?.user) return;
 
-    let weight = 1;
-    if (user.type === 'streamer' && user.verified) {
-      weight = 2;
-    } else if (user.type === 'mod' && mockStreamers[user.streamerName ?? '']?.verified) {
-      weight = 2;
-    }
-
-    // Optimistic update
+    // Optimistic update — votes.voters contains displayNames
     setReports((prev) =>
       prev.map((r) =>
-        r.id === reportId && !r.votes.voters.includes(user.name)
-          ? { ...r, votes: { total: r.votes.total + weight, voters: [...r.votes.voters, user.name] } }
+        r.id === reportId && !r.votes.voters.includes(session.user.name ?? '')
+          ? { ...r, votes: { total: r.votes.total + 1, voters: [...r.votes.voters, session.user.name ?? ''] } }
           : r,
       ),
     );
 
     try {
-      await fetch(`/api/reports/${reportId}/vote`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.name, platform: user.platform }),
-      });
+      await fetch(`/api/reports/${reportId}/vote`, { method: 'POST' });
     } catch (err) {
       console.error('Vote failed:', err);
     }

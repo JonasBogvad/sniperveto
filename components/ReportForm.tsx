@@ -11,10 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { MockUser, ReportFormData } from '@/types';
+import type { AppUser, ReportFormData } from '@/types';
 
 interface ReportFormProps {
-  user: MockUser | null;
+  user: AppUser | null;
   onSubmit: (data: ReportFormData) => Promise<void> | void;
 }
 
@@ -70,7 +70,7 @@ const ReportForm = ({ user, onSubmit }: ReportFormProps) => {
           *
         </div>
         <h2 className="text-lg sm:text-xl font-bold mb-2">Login Required</h2>
-        <p className="text-gray-400 text-sm">Connect your account to submit reports</p>
+        <p className="text-gray-400 text-sm">Connect your Twitch account to submit reports</p>
       </div>
     );
   }
@@ -183,16 +183,9 @@ const ReportForm = ({ user, onSubmit }: ReportFormProps) => {
           <div className="pt-3 border-t border-white/10">
             <div className="flex items-center gap-2 mb-3 text-xs sm:text-sm text-gray-400">
               <PlatformIcon platform={user.platform} />
-              {user.type === 'mod' ? (
-                <span className="truncate">
-                  As <strong className="text-white">{user.name}</strong> for{' '}
-                  <strong className="text-white">{user.streamerName}</strong>
-                </span>
-              ) : (
-                <span className="truncate">
-                  As <strong className="text-white">{user.name}</strong>
-                </span>
-              )}
+              <span className="truncate">
+                As <strong className="text-white">{user.username ?? user.name}</strong>
+              </span>
             </div>
             <Button
               type="submit"
