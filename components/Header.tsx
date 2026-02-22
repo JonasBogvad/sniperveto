@@ -25,7 +25,7 @@ const Header = () => {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-sv-brand to-sv-brand-2 flex items-center justify-center flex-shrink-0">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" strokeWidth="2" />
                 <circle cx="12" cy="12" r="1" fill="currentColor" />
@@ -33,7 +33,7 @@ const Header = () => {
             </div>
             <div className="hidden sm:block">
               <h1 className="text-lg font-bold">SniperVeto</h1>
-              <p className="text-xs text-gray-400">Stream Sniper Database</p>
+              <p className="text-xs text-sv-text-2">Stream Sniper Database</p>
             </div>
           </Link>
 
@@ -50,7 +50,7 @@ const Header = () => {
                   className={`text-xs sm:text-sm px-2 py-1 h-auto ${
                     isActive
                       ? 'bg-white/10 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-transparent'
+                      : 'text-sv-text-2 hover:text-sv-text hover:bg-transparent'
                   }`}
                 >
                   <Link href={href}>{label}</Link>
@@ -88,7 +88,7 @@ const Header = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => void signOut()}
-                  className="text-gray-400 hover:text-white text-xs sm:text-sm px-2 h-auto"
+                  className="text-sv-text-2 hover:text-sv-text text-xs sm:text-sm px-2 h-auto"
                 >
                   <span className="sm:hidden">X</span>
                   <span className="hidden sm:inline">Logout</span>
@@ -99,7 +99,7 @@ const Header = () => {
                 variant="secondary"
                 size="sm"
                 onClick={() => void signIn('twitch')}
-                className="bg-purple-600 hover:bg-purple-700 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm"
+                className="bg-sv-brand hover:bg-sv-brand-2 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm"
               >
                 Login with Twitch
               </Button>

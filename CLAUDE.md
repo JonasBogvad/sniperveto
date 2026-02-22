@@ -94,7 +94,38 @@ types/
 
 ---
 
-## 5. Code Standards
+## 5. Design System — Colors
+
+All colors are defined as CSS tokens in `app/globals.css` and available as Tailwind utilities.
+
+### Tokens
+
+| Token | Value | Use |
+|---|---|---|
+| `bg-sv-page` | `#0f172a` | Page background (`<body>`) |
+| `bg-sv-surface` | `#1e293b` | Cards, panels, forms |
+| `bg-sv-elevated` | `#243347` | Modals, dropdowns |
+| `text-sv-text` | `#f1f5f9` | Primary body text |
+| `text-sv-text-2` | `#94a3b8` | Secondary text, labels, subtitles |
+| `text-sv-text-3` | `#64748b` | Muted text, placeholders, footer |
+| `bg-sv-brand` | `#dc2626` | Primary CTA buttons, logo |
+| `bg-sv-brand-2` | `#ea580c` | Gradient end, hover state |
+| `text-sv-clean` | `#22c55e` | Clean / no reports / success |
+| `text-sv-warn` | `#f59e0b` | Pending / medium severity |
+| `text-sv-danger` | `#dc2626` | Reported / high severity |
+
+### Rules
+
+- **Never use `purple-*`** — not part of the brand
+- **Never use raw `gray-*`** — use `sv-text-2` or `sv-text-3` instead
+- **Borders**: always `border-white/10` (Tailwind opacity modifier)
+- **Subtle overlays**: `bg-white/5` or `bg-white/10` (fine to keep as-is)
+- **Brand gradient**: always `from-sv-brand to-sv-brand-2`
+- **Status colors** (`sv-clean`, `sv-warn`, `sv-danger`) are for semantic status only — not decorative
+
+---
+
+## 6. Code Standards
 
 ### TypeScript
 - Strict mode — **no `any`**, no `// @ts-ignore`
