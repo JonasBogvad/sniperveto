@@ -25,9 +25,10 @@ const toDbSeverity = (s?: string): 'LOW' | 'MEDIUM' | 'HIGH' => {
 // ─────────────────────────────────────────────
 // GET /api/reports — public
 // ─────────────────────────────────────────────
-export async function GET(): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
-    const reports = await fetchReports();
+    const steamId = req.nextUrl.searchParams.get('steamId') ?? undefined;
+    const reports = await fetchReports(steamId);
     return NextResponse.json(reports);
   } catch (error) {
     console.error('[GET /api/reports]', error);
