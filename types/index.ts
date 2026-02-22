@@ -2,29 +2,23 @@
 // DOMAIN TYPES — shared across app, API, and components
 // ─────────────────────────────────────────────
 
-/** Streaming platform (lowercase for UI; uppercase when sending to DB enum) */
+/** Streaming platform (lowercase for UI and PlatformIcon) */
 export type Platform = 'twitch' | 'kick' | 'youtube';
 
 /** Report severity level */
 export type Severity = 'low' | 'medium' | 'high';
 
 // ─────────────────────────────────────────────
-// AUTH — mock user shape (replaced by NextAuth session later)
+// AUTH — real session user shape (from NextAuth)
 // ─────────────────────────────────────────────
 
-export interface MockUser {
-  type: 'streamer' | 'mod';
-  name: string;
-  platform: Platform;
-  verified?: boolean;
-  streamerName?: string; // mod only
-  mods?: string[];       // streamer only
-}
-
-export interface MockStreamer {
-  platform: Platform;
-  mods: string[];
-  verified: boolean;
+export interface AppUser {
+  id: string;
+  name: string;       // displayName — matches votes.voters
+  username: string;   // platform handle
+  platform: string;   // lowercase: 'twitch' | 'youtube'
+  role: string;       // 'USER' | 'MOD' | 'STREAMER' | 'ADMIN'
+  image?: string | null;
 }
 
 // ─────────────────────────────────────────────
@@ -48,7 +42,7 @@ export interface Report {
   severity: Severity;
   votes: {
     total: number;
-    voters: string[];
+    voters: string[]; // displayNames of users who voted
   };
 }
 
@@ -68,21 +62,12 @@ export interface ReportFormData {
 // API REQUEST BODIES
 // ─────────────────────────────────────────────
 
-/** Body for POST /api/reports */
+/** Body for POST /api/reports — user identity comes from session, not body */
 export interface CreateReportBody {
   steamId: string;
   steamName: string;
   game: string;
-  platform: string;
   description: string;
   proofLinks: string[];
   severity?: string;
-  reportedBy: { username: string; platform: string };
-  submittedBy?: { username: string; platform: string };
-}
-
-/** Body for POST /api/reports/[id]/vote */
-export interface VoteBody {
-  username: string;
-  platform: string;
 }
