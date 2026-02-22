@@ -97,6 +97,15 @@ const ReportDetailModal = ({ report, open, onClose, user, onVote }: ReportDetail
                 variant="secondary"
                 className="flex-1 bg-slate-700 hover:bg-slate-600"
               >
+                <Link href={`/steam/${report.steamId}`} onClick={onClose}>
+                  View History
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="secondary"
+                className="flex-1 bg-slate-700 hover:bg-slate-600"
+              >
                 <a
                   href={`https://steamcommunity.com/profiles/${report.steamId}`}
                   target="_blank"
