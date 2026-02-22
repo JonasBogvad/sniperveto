@@ -65,7 +65,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Twitch({
       authorization: {
         params: {
-          scope: 'openid user:read:email moderation:read',
+          scope: 'openid user:read:email user:read:moderated_channels',
         },
       },
     }),
