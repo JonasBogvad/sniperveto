@@ -1,15 +1,20 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { Suspense } from 'react';
 import ReportForm from '@/components/ReportForm';
 import { useUser } from '@/lib/user-context';
 import type { ReportFormData } from '@/types';
 
-export default function ReportPage() {
+function ReportPageInner() {
   const { user } = useUser();
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialSteamId = searchParams.get('steamId') ?? undefined;
+  const initialSteamName = searchParams.get('steamName') ?? undefined;
 
   const handleSubmit = async (formData: ReportFormData) => {
     if (!session?.user) return;
@@ -32,5 +37,20 @@ export default function ReportPage() {
     }
   };
 
-  return <ReportForm user={user} onSubmit={handleSubmit} />;
+  return (
+    <ReportForm
+      user={user}
+      onSubmit={handleSubmit}
+      initialSteamId={initialSteamId}
+      initialSteamName={initialSteamName}
+    />
+  );
+}
+
+export default function ReportPage() {
+  return (
+    <Suspense>
+      <ReportPageInner />
+    </Suspense>
+  );
 }
