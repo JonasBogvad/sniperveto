@@ -37,7 +37,9 @@ export async function POST(
       data: { status: newStatus, reviewNote: note?.trim() || null },
     });
     return NextResponse.json({ ok: true, status: appeal.status });
-  } catch {
-    return NextResponse.json({ error: 'Appeal not found' }, { status: 404 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('[review] db update failed:', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
