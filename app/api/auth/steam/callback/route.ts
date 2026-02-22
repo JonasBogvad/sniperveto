@@ -3,7 +3,7 @@ import { createAppealToken } from '@/lib/steam-appeal';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const SteamAuth = require('node-steam-openid') as {
   new (opts: { realm: string; returnUrl: string; apiKey: string }): {
-    authenticate(req: { url: string }): Promise<{ steamid: string }>;
+    authenticate(req: { url: string; method: string }): Promise<{ steamid: string }>;
   };
 };
 
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   });
 
   try {
-    const user = await steam.authenticate({ url: req.url });
+    const user = await steam.authenticate({ url: req.url, method: 'GET' });
 
     const response = NextResponse.redirect(new URL(returnTo, origin));
     response.cookies.set('steam_appeal_token', createAppealToken(user.steamid), {
