@@ -1,0 +1,139 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import ReportCard from '@/components/ReportCard';
+import ReportDetailModal from '@/components/ReportDetailModal';
+import { mockStreamers } from '@/data/mockData';
+import { useUser } from '@/lib/user-context';
+import type { Report } from '@/types';
+
+export default function HomePage() {
+  const { user } = useUser();
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterGame, setFilterGame] = useState('');
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch('/api/reports');
+        if (res.ok) setReports((await res.json()) as Report[]);
+      } catch (err) {
+        console.error('Failed to fetch reports:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    void load();
+  }, []);
+
+  const handleVote = async (reportId: string) => {
+    if (!user) return;
+
+    let weight = 1;
+    if (user.type === 'streamer' && user.verified) {
+      weight = 2;
+    } else if (user.type === 'mod' && mockStreamers[user.streamerName ?? '']?.verified) {
+      weight = 2;
+    }
+
+    // Optimistic update
+    setReports((prev) =>
+      prev.map((r) =>
+        r.id === reportId && !r.votes.voters.includes(user.name)
+          ? { ...r, votes: { total: r.votes.total + weight, voters: [...r.votes.voters, user.name] } }
+          : r,
+      ),
+    );
+
+    try {
+      await fetch(`/api/reports/${reportId}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user.name, platform: user.platform }),
+      });
+    } catch (err) {
+      console.error('Vote failed:', err);
+    }
+  };
+
+  const filteredReports = reports.filter((r) => {
+    const matchesSearch =
+      searchQuery === '' ||
+      r.steamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.steamId.includes(searchQuery) ||
+      r.reportedBy.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch && (filterGame === '' || r.game === filterGame);
+  });
+
+  const games = [...new Set(reports.map((r) => r.game))];
+
+  return (
+    <>
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-1">Sniper Database</h2>
+        <p className="text-gray-400 text-xs sm:text-sm">Browse reported snipers</p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className="flex-1 relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 sm:py-2.5 text-sm text-white placeholder-gray-500"
+          />
+        </div>
+        <select
+          value={filterGame}
+          onChange={(e) => setFilterGame(e.target.value)}
+          className="bg-white/5 border border-white/10 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-white"
+        >
+          <option value="">All Games</option>
+          {games.map((game) => (
+            <option key={game} value={game}>{game}</option>
+          ))}
+        </select>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 sm:py-16">
+          <p className="text-gray-400 text-sm">Loading reports...</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            {filteredReports.map((report) => (
+              <ReportCard
+                key={report.id}
+                report={report}
+                onClick={setSelectedReport}
+                user={user}
+                onVote={handleVote}
+              />
+            ))}
+          </div>
+
+          {filteredReports.length === 0 && (
+            <div className="text-center py-12 sm:py-16">
+              <div className="text-4xl mb-4">🔍</div>
+              <p className="text-gray-400 text-sm">No reports found</p>
+            </div>
+          )}
+        </>
+      )}
+
+      <ReportDetailModal
+        report={selectedReport}
+        open={selectedReport != null}
+        onClose={() => setSelectedReport(null)}
+        user={user}
+        onVote={handleVote}
+      />
+    </>
+  );
+}

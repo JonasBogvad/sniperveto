@@ -1,1 +1,23 @@
+#!/bin/sh
+# ─────────────────────────────────────────────
+# Pre-commit hook — strictest gate:
+#   1. TypeScript: zero type errors (full project check)
+#   2. ESLint: zero warnings on staged files
+# Both must pass or the commit is blocked.
+# ─────────────────────────────────────────────
+
+echo "→ TypeScript check..."
+npx tsc --noEmit
+if [ $? -ne 0 ]; then
+  echo "✗ TypeScript errors found. Fix them before committing."
+  exit 1
+fi
+
+echo "→ ESLint (staged files)..."
 npx lint-staged
+if [ $? -ne 0 ]; then
+  echo "✗ ESLint errors found. Fix them before committing."
+  exit 1
+fi
+
+echo "✓ All checks passed."

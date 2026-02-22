@@ -1,0 +1,177 @@
+// SniperVeto - Prisma Schema
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum Role {
+  USER
+  MOD
+  STREAMER
+  ADMIN
+}
+
+enum Platform {
+  TWITCH
+  KICK
+  YOUTUBE
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ReportStatus {
+  PENDING
+  CONFIRMED
+  DISPUTED
+  DISMISSED
+}
+
+// ─────────────────────────────────────────────
+// USER — streamers, mods, and reporters
+// ─────────────────────────────────────────────
+
+model User {
+  id             String   @id @default(cuid())
+  email          String?  @unique
+  username       String   @unique
+  displayName    String
+  avatarUrl      String?
+  role           Role     @default(USER)
+  platform       Platform
+  platformId     String   // external platform user ID
+  platformToken  String?  // OAuth token (encrypted)
+  verified       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  streamerProfile  StreamerProfile?
+  moddingFor       StreamerMod[]    @relation("ModUser")
+  mods             StreamerMod[]    @relation("StreamerUser")
+  reportsSubmitted Report[]         @relation("SubmittedBy")
+  reportsOwned     Report[]         @relation("ReportedBy")
+  votes            ReportVote[]
+
+  @@unique([platformId, platform])
+  @@index([username])
+}
+
+// ─────────────────────────────────────────────
+// STREAMER PROFILE — extra data for streamers
+// ─────────────────────────────────────────────
+
+model StreamerProfile {
+  id        String  @id @default(cuid())
+  userId    String  @unique
+  streamUrl String?
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────
+// STREAMER MOD — which mods belong to which streamer
+// ─────────────────────────────────────────────
+
+model StreamerMod {
+  streamerId  String
+  modId       String
+  assignedAt  DateTime @default(now())
+
+  streamer User @relation("StreamerUser", fields: [streamerId], references: [id], onDelete: Cascade)
+  mod      User @relation("ModUser", fields: [modId], references: [id], onDelete: Cascade)
+
+  @@id([streamerId, modId])
+}
+
+// ─────────────────────────────────────────────
+// STEAM ACCOUNT — the suspected stream sniper
+// ─────────────────────────────────────────────
+
+model SteamAccount {
+  id          String   @id @default(cuid())
+  steamId     String   @unique  // 64-bit Steam ID
+  steamName   String
+  avatarUrl   String?
+  profileUrl  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reports Report[]
+
+  @@index([steamId])
+}
+
+// ─────────────────────────────────────────────
+// REPORT — a stream sniper report
+// ─────────────────────────────────────────────
+
+model Report {
+  id              String       @id @default(cuid())
+  steamAccountId  String
+  reportedById    String       // streamer who was sniped
+  submittedById   String?      // mod who filed the report (nullable)
+  game            String
+  platform        Platform
+  severity        Severity     @default(LOW)
+  status          ReportStatus @default(PENDING)
+  description     String       @db.Text
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  steamAccount SteamAccount @relation(fields: [steamAccountId], references: [id])
+  reportedBy   User         @relation("ReportedBy", fields: [reportedById], references: [id])
+  submittedBy  User?        @relation("SubmittedBy", fields: [submittedById], references: [id])
+  proofLinks   ProofLink[]
+  votes        ReportVote[]
+
+  @@index([steamAccountId])
+  @@index([reportedById])
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────
+// PROOF LINK — evidence attached to a report
+// ─────────────────────────────────────────────
+
+model ProofLink {
+  id        String   @id @default(cuid())
+  reportId  String
+  url       String
+  createdAt DateTime @default(now())
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+}
+
+// ─────────────────────────────────────────────
+// REPORT VOTE — streamer/mod corroboration votes
+// ─────────────────────────────────────────────
+
+model ReportVote {
+  id        String   @id @default(cuid())
+  reportId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reportId, userId]) // one vote per user per report
+  @@index([reportId])
+}
