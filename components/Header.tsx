@@ -7,7 +7,7 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import PlatformIcon from '@/components/PlatformIcon';
 import { Button } from '@/components/ui/button';
 
-const NAV_ROUTES = [
+const BASE_NAV = [
   { href: '/', label: 'DB' },
   { href: '/report', label: 'Report' },
   { href: '/stats', label: 'Stats' },
@@ -38,7 +38,12 @@ const Header = () => {
 
           {/* Nav */}
           <nav className="flex items-center gap-1 sm:gap-2">
-            {NAV_ROUTES.map(({ href, label }) => {
+            {[
+              ...BASE_NAV,
+              ...(user && ['MOD', 'STREAMER', 'ADMIN'].includes(user.role)
+                ? [{ href: '/appeals', label: 'Appeals' }]
+                : []),
+            ].map(({ href, label }) => {
               const isActive = pathname === href;
               return (
                 <Button

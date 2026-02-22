@@ -190,14 +190,15 @@ model ReportVote {
 // ─────────────────────────────────────────────
 
 model ReportAppeal {
-  id        String       @id @default(cuid())
-  reportId  String
-  steamId   String       // must match the report's steamAccount.steamId
-  reason    String       @db.Text
-  contact   String?      // optional email or other contact
-  status    AppealStatus @default(PENDING)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id          String       @id @default(cuid())
+  reportId    String
+  steamId     String       // must match the report's steamAccount.steamId
+  reason      String       @db.Text
+  contact     String?      // optional Discord username
+  status      AppealStatus @default(PENDING)
+  reviewNote  String?      @db.Text // reason written by mod when accepting or rejecting
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
 

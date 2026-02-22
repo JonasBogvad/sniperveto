@@ -3,12 +3,42 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import type { AppealStatus } from '@/types';
+
+const DISCORD_INVITE = process.env.NEXT_PUBLIC_DISCORD_INVITE ?? null;
+
+const STATUS_LABELS: Record<AppealStatus, { label: string; className: string }> = {
+  PENDING: { label: 'Pending review', className: 'text-sv-warn' },
+  REVIEWED: { label: 'Under review', className: 'text-blue-400' },
+  ACCEPTED: { label: 'Accepted', className: 'text-sv-clean' },
+  REJECTED: { label: 'Rejected', className: 'text-sv-danger' },
+};
+
+function DiscordCTA({ label }: { label: string }) {
+  if (!DISCORD_INVITE) {
+    return <p className="text-sv-text-3 text-sm">{label}</p>;
+  }
+  return (
+    <div className="space-y-2">
+      <p className="text-sv-text-2 text-sm">{label}</p>
+      <a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer">
+        <Button className="bg-indigo-600 hover:bg-indigo-700 flex items-center gap-2">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.08.1 18.1.12 18.116a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
+          </svg>
+          Join Discord
+        </Button>
+      </a>
+    </div>
+  );
+}
 
 interface Props {
   reportId: string;
   reportSteamId: string;
   reportSteamName: string;
   verifiedSteamId: string | null;
+  existingAppeal: { status: string; cooloffUntil: string | null; reviewNote: string | null } | null;
 }
 
 export default function AppealForm({
@@ -16,6 +46,7 @@ export default function AppealForm({
   reportSteamId,
   reportSteamName,
   verifiedSteamId,
+  existingAppeal,
 }: Props) {
   const [reason, setReason] = useState('');
   const [contact, setContact] = useState('');
@@ -42,10 +73,13 @@ export default function AppealForm({
 
   if (done) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-3">
+      <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-4">
         <p className="text-sv-text font-semibold text-lg">Appeal submitted</p>
-        <p className="text-sv-text-2 text-sm">We will review it and get back to you.</p>
-        <Link href="/" className="text-sm text-sv-text-3 hover:text-sv-text-2 transition-colors">
+        <p className="text-sv-text-2 text-sm">
+          Your appeal has been recorded. The mods have been notified.
+        </p>
+        <DiscordCTA label="Join our Discord to discuss your appeal and follow up with the community." />
+        <Link href="/" className="block text-sm text-sv-text-3 hover:text-sv-text-2 transition-colors">
           ← Back to database
         </Link>
       </div>
@@ -91,6 +125,49 @@ export default function AppealForm({
             </Button>
           </a>
         </div>
+      ) : existingAppeal ? (
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+          {existingAppeal.cooloffUntil ? (
+            <>
+              <p className="text-sm font-medium text-sv-text">Appeal declined</p>
+              {existingAppeal.reviewNote && (
+                <p className="text-sv-text-2 text-sm">
+                  <span className="text-sv-text-3">Reason: </span>
+                  {existingAppeal.reviewNote}
+                </p>
+              )}
+              <p className="text-sv-text-2 text-sm">
+                You can appeal again after{' '}
+                <span className="text-sv-text font-medium">
+                  {new Date(existingAppeal.cooloffUntil).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </span>
+                .
+              </p>
+              <DiscordCTA label="Join our Discord to discuss your case." />
+            </>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-sv-text">Appeal already submitted</p>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-sv-text-3">Status:</span>
+                <span className={STATUS_LABELS[existingAppeal.status as AppealStatus]?.className ?? 'text-sv-text-2'}>
+                  {STATUS_LABELS[existingAppeal.status as AppealStatus]?.label ?? existingAppeal.status}
+                </span>
+              </div>
+              {existingAppeal.reviewNote && (
+                <p className="text-sv-text-2 text-sm">
+                  <span className="text-sv-text-3">Mod note: </span>
+                  {existingAppeal.reviewNote}
+                </p>
+              )}
+              <DiscordCTA label="Join our Discord to follow up on your appeal." />
+            </>
+          )}
+        </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <p className="text-xs text-sv-text-3">
@@ -109,13 +186,13 @@ export default function AppealForm({
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-sv-text font-medium">Contact (optional)</label>
+            <label className="text-sm text-sv-text font-medium">Discord username (optional)</label>
             <input
               type="text"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-sv-text placeholder:text-sv-text-3 focus:outline-none focus:border-sv-brand"
-              placeholder="Email or Discord for follow-up"
+              placeholder="e.g. username#1234 — so we can find you on Discord"
             />
           </div>
           <Button
