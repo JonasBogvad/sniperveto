@@ -19,14 +19,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+      <body className="min-h-screen bg-sv-page text-sv-text">
         <SessionProviderWrapper>
           <Header />
           <main className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-6">
             {children}
           </main>
           <footer className="border-t border-white/10 py-4 sm:py-6 mt-8 sm:mt-12">
-            <p className="text-center text-gray-500 text-xs sm:text-sm px-4">
+            <p className="text-center text-sv-text-3 text-xs sm:text-sm px-4">
               SniperVeto — Community stream sniper database
             </p>
           </footer>

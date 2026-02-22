@@ -7,7 +7,48 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
+/* ─────────────────────────────────────────────
+   SniperVeto Design Tokens
+   Use these via Tailwind: bg-sv-*, text-sv-*, border-sv-*
+   ─────────────────────────────────────────────
+
+   Backgrounds
+     sv-page       — page background          (#0f172a)
+     sv-surface    — cards, panels            (#1e293b)
+     sv-elevated   — modals, dropdowns        (#243347)
+
+   Text
+     sv-text       — primary body text        (#f1f5f9)
+     sv-text-2     — secondary / labels       (#94a3b8)
+     sv-text-3     — muted / placeholders     (#64748b)
+
+   Brand
+     sv-brand      — primary CTA, accent      (#dc2626)
+     sv-brand-2    — gradient end / hover     (#ea580c)
+
+   Status
+     sv-clean      — no reports / success     (#22c55e)
+     sv-warn       — pending / medium         (#f59e0b)
+     sv-danger     — reported / high severity (#dc2626)
+
+   Border
+     border-white/10  — standard border (Tailwind opacity modifier, not a token)
+───────────────────────────────────────────── */
+
 @theme inline {
+  /* SniperVeto tokens */
+  --color-sv-page:    #0f172a;
+  --color-sv-surface: #1e293b;
+  --color-sv-elevated:#243347;
+  --color-sv-text:    #f1f5f9;
+  --color-sv-text-2:  #94a3b8;
+  --color-sv-text-3:  #64748b;
+  --color-sv-brand:   #dc2626;
+  --color-sv-brand-2: #ea580c;
+  --color-sv-clean:   #22c55e;
+  --color-sv-warn:    #f59e0b;
+  --color-sv-danger:  #dc2626;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
