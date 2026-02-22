@@ -7,8 +7,58 @@ const platformMap: Record<string, 'TWITCH' | 'YOUTUBE'> = {
   google: 'YOUTUBE',
 };
 
+interface TwitchModeratedChannel {
+  broadcaster_id: string;
+  broadcaster_login: string;
+  broadcaster_name: string;
+}
+
+function getAdminUsernames(): Set<string> {
+  const raw = process.env.AUTH_ADMIN_USERNAMES ?? '';
+  return new Set(
+    raw
+      .split(',')
+      .map((u) => u.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+async function fetchTwitchModeratedChannels(
+  accessToken: string,
+  twitchUserId: string,
+): Promise<TwitchModeratedChannel[]> {
+  try {
+    const res = await fetch(
+      `https://api.twitch.tv/helix/moderation/channels?user_id=${twitchUserId}&first=100`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Client-Id': process.env.AUTH_TWITCH_ID ?? '',
+        },
+      },
+    );
+    if (!res.ok) {
+      console.error('[auth] Twitch mod channels fetch failed:', res.status);
+      return [];
+    }
+    const json = (await res.json()) as { data: TwitchModeratedChannel[] };
+    return json.data ?? [];
+  } catch (err) {
+    console.error('[auth] fetchTwitchModeratedChannels error:', err);
+    return [];
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [Twitch],
+  providers: [
+    Twitch({
+      authorization: {
+        params: {
+          scope: 'openid user:read:email user:read:moderated_channels',
+        },
+      },
+    }),
+  ],
   session: { strategy: 'jwt' },
   callbacks: {
     async signIn({ user, account, profile }) {
@@ -20,8 +70,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const twitchProfile = profile as { preferred_username?: string };
       const username = twitchProfile.preferred_username ?? user.name ?? platformId;
 
+      const admins = getAdminUsernames();
+      const isAdmin = admins.has(username.toLowerCase());
+
       try {
-        await db.user.upsert({
+        // Determine role: admin > mod (via API) > user
+        let role: 'ADMIN' | 'MOD' | 'USER' = isAdmin ? 'ADMIN' : 'USER';
+        let moderatedChannels: TwitchModeratedChannel[] = [];
+
+        if (!isAdmin && account.provider === 'twitch' && account.access_token) {
+          moderatedChannels = await fetchTwitchModeratedChannels(
+            account.access_token,
+            platformId,
+          );
+          if (moderatedChannels.length > 0) role = 'MOD';
+        }
+
+        const dbUser = await db.user.upsert({
           where: { platformId_platform: { platformId, platform } },
           create: {
             username,
@@ -31,14 +96,49 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             platform,
             platformId,
             verified: true,
+            role,
           },
           update: {
             displayName: user.name ?? username,
             avatarUrl: user.image ?? null,
             email: user.email ?? null,
             verified: true,
+            role,
           },
         });
+
+        // Sync StreamerMod records for verified mod channels
+        if (moderatedChannels.length > 0) {
+          for (const channel of moderatedChannels) {
+            const streamer = await db.user.upsert({
+              where: {
+                platformId_platform: {
+                  platformId: channel.broadcaster_id,
+                  platform: 'TWITCH',
+                },
+              },
+              create: {
+                username: channel.broadcaster_login,
+                displayName: channel.broadcaster_name,
+                platform: 'TWITCH',
+                platformId: channel.broadcaster_id,
+                verified: false,
+              },
+              update: {},
+            });
+            await db.streamerMod.upsert({
+              where: {
+                streamerId_modId: {
+                  streamerId: streamer.id,
+                  modId: dbUser.id,
+                },
+              },
+              create: { streamerId: streamer.id, modId: dbUser.id },
+              update: {},
+            });
+          }
+        }
+
         return true;
       } catch (err) {
         console.error('[auth.signIn]', err);
