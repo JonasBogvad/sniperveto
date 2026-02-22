@@ -19,9 +19,9 @@ const Header = () => {
   const user = session?.user;
 
   return (
-    <header className="border-b border-white/10 bg-black/30 sticky top-0 z-50 h-14 sm:h-16 overflow-visible">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 h-full">
-        <div className="flex items-center justify-between gap-2 h-full">
+    <header className="border-b border-white/10 bg-black/30 sticky top-0 z-50">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-5">
+        <div className="flex items-center justify-between gap-2">
 
           {/* Logo */}
           <Link href="/" className="flex items-center">
@@ -30,7 +30,7 @@ const Header = () => {
               alt="SniperVeto"
               width={621}
               height={190}
-              className="h-28 w-auto sm:h-32"
+              className="h-10 w-auto sm:h-12"
               priority
               unoptimized
             />
