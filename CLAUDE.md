@@ -73,17 +73,17 @@ app/
 components/
   ui/                       # shadcn primitives (Button, Card, Dialog, etc.)
   Header.tsx
-  LoginModal.tsx
+  PlatformIcon.tsx          # SVG icons for Twitch / YouTube / Kick
   ReportCard.tsx
   ReportDetailModal.tsx
   ReportForm.tsx
-  PlatformIcon.tsx
+  SessionProviderWrapper.tsx
   SeverityBadge.tsx
   StatsView.tsx
-data/
-  mockData.ts               # Dev-only mock data (remove when auth is live)
 lib/
   db.ts                     # Prisma singleton (import { db } from '@/lib/db')
+  reports.ts                # fetchReports() — shared by API + stats page
+  user-context.tsx          # useUser() hook — thin wrapper over useSession()
   utils.ts                  # cn() utility
 prisma/
   schema.prisma             # DB schema
@@ -137,6 +137,7 @@ All colors are defined as CSS tokens in `app/globals.css` and available as Tailw
 - Use `'use client'` for components that use hooks or event handlers
 - Import alias `@/` for all internal imports
 - Mobile-first Tailwind: default styles for mobile, `sm:` for larger
+- `<html>` always has `className="dark"` — required for shadcn dark mode and all color tokens
 
 ### Next.js App Router — routing rules
 
@@ -302,7 +303,19 @@ Branch strategy:
 
 ---
 
-## 9. Quick Reference
+## 9. Browser Extension
+
+Separate repo: **`github.com/JonasBogvad/sniperveto-extension`** (local: `C:\Github\sniperveto-extension`)
+
+- Built with WXT + TypeScript, targets Chrome/Edge (MV3)
+- Injects a status panel on `steamcommunity.com` profile pages
+- Checks `GET /api/reports?steamId=` — added to this API for the extension
+- Report button opens `/report?steamId=&steamName=` with fields pre-filled
+- Dev: `npm run dev` in the extension repo (runs on port 3010, opens Edge)
+
+---
+
+## 10. Quick Reference
 
 ```bash
 npm run dev          # Start dev server (Turbopack, http://localhost:3000)
