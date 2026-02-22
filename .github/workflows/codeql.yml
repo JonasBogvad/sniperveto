@@ -1,4 +1,4 @@
-name: CodeQL Security Analysis
+name: SniperVeto Security Scan
 
 on:
   push:
