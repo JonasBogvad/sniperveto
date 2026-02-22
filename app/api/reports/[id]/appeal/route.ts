@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { verifyAppealToken } from '@/lib/steam-appeal';
 import { notifyDiscordNewAppeal } from '@/lib/discord';
 
 // ─────────────────────────────────────────────
-// POST /api/reports/[id]/appeal — public (no auth)
-// The reported person may not have an account, so no auth is required.
-// steamId must match the report's steam account to prevent spam.
+// POST /api/reports/[id]/appeal
+// Requires a valid steam_appeal_token cookie (set after Steam OpenID login).
+// The verified Steam ID must match the report's steam account.
 // ─────────────────────────────────────────────
 export async function POST(
   req: NextRequest,
@@ -13,30 +14,34 @@ export async function POST(
 ): Promise<NextResponse> {
   const { id: reportId } = await params;
 
-  const body = (await req.json()) as {
-    steamId?: string;
-    reason?: string;
-    contact?: string;
-  };
+  // Verify Steam identity from cookie
+  const token = req.cookies.get('steam_appeal_token')?.value;
+  if (!token) {
+    return NextResponse.json({ error: 'Steam verification required' }, { status: 401 });
+  }
+  const verifiedSteamId = verifyAppealToken(token);
+  if (!verifiedSteamId) {
+    return NextResponse.json({ error: 'Steam verification expired or invalid' }, { status: 401 });
+  }
 
-  const { steamId, reason, contact } = body;
+  const body = (await req.json()) as { reason?: string; contact?: string };
+  const { reason, contact } = body;
 
-  if (!steamId || !reason?.trim()) {
-    return NextResponse.json({ error: 'steamId and reason are required' }, { status: 400 });
+  if (!reason?.trim()) {
+    return NextResponse.json({ error: 'reason is required' }, { status: 400 });
   }
 
   const report = await db.report.findUnique({
     where: { id: reportId },
     include: { steamAccount: true },
   });
-
   if (!report) {
     return NextResponse.json({ error: 'Report not found' }, { status: 404 });
   }
 
-  if (report.steamAccount.steamId !== steamId) {
+  if (report.steamAccount.steamId !== verifiedSteamId) {
     return NextResponse.json(
-      { error: 'Steam ID does not match the reported account' },
+      { error: 'Verified Steam account does not match the reported account' },
       { status: 403 },
     );
   }
@@ -44,7 +49,7 @@ export async function POST(
   await db.reportAppeal.create({
     data: {
       reportId,
-      steamId,
+      steamId: verifiedSteamId,
       reason: reason.trim(),
       contact: contact?.trim() || null,
     },
@@ -52,7 +57,7 @@ export async function POST(
 
   void notifyDiscordNewAppeal({
     reportId,
-    steamId,
+    steamId: verifiedSteamId,
     steamName: report.steamAccount.steamName,
     reason: reason.trim(),
     contact: contact?.trim() || null,
