@@ -19,22 +19,20 @@ const Header = () => {
   const user = session?.user;
 
   return (
-    <header className="border-b border-white/10 bg-black/30 sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-3 py-2 sm:px-4 sm:py-3">
-        <div className="flex items-center justify-between gap-2">
+    <header className="border-b border-white/10 bg-black/30 sticky top-0 z-50 h-14 sm:h-16 overflow-visible">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 h-full">
+        <div className="flex items-center justify-between gap-2 h-full">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-sv-brand to-sv-brand-2 flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                <circle cx="12" cy="12" r="1" fill="currentColor" />
-              </svg>
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-lg font-bold">SniperVeto</h1>
-              <p className="text-xs text-sv-text-2">Stream Sniper Database</p>
-            </div>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo.png"
+              alt="SniperVeto"
+              width={140}
+              height={50}
+              className="h-28 w-auto sm:h-32"
+              priority
+            />
           </Link>
 
           {/* Nav */}
