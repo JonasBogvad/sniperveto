@@ -102,7 +102,7 @@ export default function PrivacyPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Third-party services</h2>
         <ul className="list-disc list-inside space-y-1 text-sm text-sv-text-2 ml-2">
-          <li><strong className="text-sv-text">Twitch / Google OAuth</strong> — used for login. Their privacy policies apply to the OAuth flow.</li>
+          <li><strong className="text-sv-text">Twitch / Kick OAuth</strong> — used for login. Their privacy policies apply to the OAuth flow.</li>
           <li><strong className="text-sv-text">Steam Web API</strong> — used to look up public Steam profiles.</li>
           <li><strong className="text-sv-text">Neon</strong> — PostgreSQL database hosting.</li>
           <li><strong className="text-sv-text">Vercel</strong> — application hosting and deployment.</li>

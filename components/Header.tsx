@@ -43,6 +43,12 @@ const Header = () => {
               ...(user && ['MOD', 'STREAMER', 'ADMIN'].includes(user.role)
                 ? [{ href: '/appeals', label: 'Appeals' }]
                 : []),
+              ...(user && user.role === 'STREAMER'
+                ? [{ href: '/my/mods', label: 'My Mods' }]
+                : []),
+              ...(user && user.role === 'ADMIN'
+                ? [{ href: '/admin', label: 'Admin' }]
+                : []),
             ].map(({ href, label }) => {
               const isActive = pathname === href;
               return (
@@ -68,7 +74,7 @@ const Header = () => {
             {user ? (
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-2 py-1 sm:px-3 sm:py-1.5">
-                  {user.image ? (
+                  {user.image && user.platform !== 'kick' ? (
                     <Image
                       src={user.image}
                       alt={user.name ?? ''}
@@ -112,11 +118,11 @@ const Header = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => void signIn('google')}
+                  onClick={() => void signIn('kick')}
                   className="bg-white/10 hover:bg-white/20 px-2.5 py-1.5 sm:px-3 text-xs sm:text-sm flex items-center gap-1.5 text-sv-text"
                 >
-                  <PlatformIcon platform="youtube" size={13} />
-                  <span className="hidden sm:inline">YouTube</span>
+                  <PlatformIcon platform="kick" size={13} />
+                  <span className="hidden sm:inline">Kick</span>
                 </Button>
               </div>
             )}

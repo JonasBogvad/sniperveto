@@ -1,11 +1,37 @@
 import NextAuth from 'next-auth';
 import Twitch from 'next-auth/providers/twitch';
-import Google from 'next-auth/providers/google';
+import type { OAuthConfig } from 'next-auth/providers';
 import { db } from '@/lib/db';
 
-const platformMap: Record<string, 'TWITCH' | 'YOUTUBE'> = {
+const platformMap: Record<string, 'TWITCH' | 'KICK'> = {
   twitch: 'TWITCH',
-  google: 'YOUTUBE',
+  kick: 'KICK',
+};
+
+// ─── Kick OAuth 2.1 provider (PKCE required) ─────────────────────────────────
+
+interface KickProfile {
+  data: { user_id: number; name: string; email: string; profile_picture: string }[];
+  message: string;
+}
+
+const KickProvider: OAuthConfig<KickProfile> = {
+  id: 'kick',
+  name: 'Kick',
+  type: 'oauth',
+  authorization: {
+    url: 'https://id.kick.com/oauth/authorize',
+    params: { scope: 'user:read', response_type: 'code' },
+  },
+  token: `${process.env.AUTH_URL}/api/kick-token-proxy`,
+  userinfo: 'https://api.kick.com/public/v1/users',
+  profile(profile) {
+    const u = profile.data[0];
+    return { id: String(u.user_id), name: u.name, email: u.email ?? null, image: u.profile_picture ?? null };
+  },
+  checks: ['pkce', 'state'],
+  clientId: process.env.AUTH_KICK_ID,
+  clientSecret: process.env.AUTH_KICK_SECRET,
 };
 
 interface TwitchModeratedChannel {
@@ -71,7 +97,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
       },
     }),
-    Google,
+    KickProvider,
   ],
   session: { strategy: 'jwt' },
   callbacks: {
@@ -82,7 +108,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         console.log('[auth.signIn] returning false — unknown provider:', account.provider);
         return false;
       }
-      // Twitch needs profile for preferred_username; Google works without it
+      // Twitch needs profile for preferred_username
       if (account.provider === 'twitch' && !profile) {
         console.log('[auth.signIn] returning false — Twitch missing profile');
         return false;
@@ -95,8 +121,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const twitchProfile = profile as { preferred_username?: string };
         username = twitchProfile.preferred_username ?? user.name ?? platformId;
       } else {
-        // YouTube — use Google display name as username, fall back to platformId
-        username = (user.name ?? '').replace(/\s+/g, '_').toLowerCase() || `yt_${platformId}`;
+        // Kick — slugify display name, fall back to kick_<id>
+        username = (user.name ?? '').replace(/\s+/g, '_').toLowerCase() || `kick_${platformId}`;
       }
       console.log('[auth.signIn] username:', username, '| platform:', platform);
 
@@ -104,11 +130,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const isAdmin = admins.has(username.toLowerCase());
 
       try {
-        // Determine role: admin > mod (via API) > user
-        let role: 'ADMIN' | 'MOD' | 'USER' = isAdmin ? 'ADMIN' : 'USER';
+        // Check if this user is already a registered streamer
+        const existingDbUser = await db.user.findUnique({
+          where: { platformId_platform: { platformId, platform } },
+          select: { streamerProfile: true },
+        });
+        const isStreamer = !!existingDbUser?.streamerProfile;
+
+        // Determine role: admin > streamer (registered) > mod (via Twitch API) > user
+        let role: 'ADMIN' | 'STREAMER' | 'MOD' | 'USER' = isAdmin
+          ? 'ADMIN'
+          : isStreamer
+            ? 'STREAMER'
+            : 'USER';
         let moderatedChannels: TwitchModeratedChannel[] = [];
 
-        if (!isAdmin && account.provider === 'twitch' && account.access_token) {
+        if (!isAdmin && !isStreamer && account.provider === 'twitch' && account.access_token) {
           moderatedChannels = await fetchTwitchModeratedChannels(
             account.access_token,
             platformId,

@@ -20,8 +20,8 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      // Twitch avatars, Google avatars + data URIs for placeholders
-      "img-src 'self' data: blob: https://static-cdn.jtvnw.net https://lh3.googleusercontent.com",
+      // Twitch + Kick avatars + data URIs for placeholders
+      "img-src 'self' data: blob: https://static-cdn.jtvnw.net https://kick.com https://files.kick.com",
       "font-src 'self' https://fonts.gstatic.com",
       // API routes and NextAuth callbacks
       "connect-src 'self'",
@@ -46,7 +46,13 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com', // Google/YouTube avatars
+        hostname: 'kick.com', // Kick avatars
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'files.kick.com', // Kick CDN avatars
+        pathname: '/**',
       },
     ],
   },

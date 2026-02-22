@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────
 
 /** Streaming platform (lowercase for UI and PlatformIcon) */
-export type Platform = 'twitch' | 'kick' | 'youtube';
+export type Platform = 'twitch' | 'kick';
 
 /** Report severity level */
 export type Severity = 'low' | 'medium' | 'high';
@@ -16,7 +16,7 @@ export interface AppUser {
   id: string;
   name: string;       // displayName — matches votes.voters
   username: string;   // platform handle
-  platform: string;   // lowercase: 'twitch' | 'youtube'
+  platform: string;   // lowercase: 'twitch' | 'kick'
   role: string;       // 'USER' | 'MOD' | 'STREAMER' | 'ADMIN'
   image?: string | null;
 }
