@@ -45,6 +45,7 @@ export interface Report {
     total: number;
     voters: string[]; // displayNames of users who voted
   };
+  appealCount: number;
 }
 
 // ─────────────────────────────────────────────
