@@ -5,11 +5,12 @@ const toFrontendPlatform = (p: string): Platform => p.toLowerCase() as Platform;
 const toFrontendSeverity = (s: string): Severity => s.toLowerCase() as Severity;
 
 /**
- * Fetches all reports from the DB and shapes them to the frontend contract.
- * Used by both GET /api/reports and the /stats Server Component.
+ * Fetches reports from the DB and shapes them to the frontend contract.
+ * Pass `steamId` to filter to a single Steam account (used by the browser extension).
  */
-export async function fetchReports(): Promise<Report[]> {
+export async function fetchReports(steamId?: string): Promise<Report[]> {
   const rows = await db.report.findMany({
+    where: steamId ? { steamAccount: { steamId } } : undefined,
     include: {
       steamAccount: true,
       reportedBy: true,
