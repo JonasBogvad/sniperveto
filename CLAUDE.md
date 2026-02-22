@@ -49,7 +49,7 @@ Reports are anchored to a **Steam account**, not to a streamer or a game. This i
 | Database | Neon (PostgreSQL) via Vercel | |
 | ORM | Prisma v7 | Schema: `prisma/schema.prisma` |
 | DB client | `lib/db.ts` | Prisma singleton + Neon adapter |
-| Auth | NextAuth.js (Twitch, Kick, YouTube) | Not yet built |
+| Auth | NextAuth.js v5 (next-auth@beta) | Twitch live, YouTube pending, Kick no OAuth yet |
 | Deployment | Vercel | Auto-deploy on push to `main` |
 
 ---
@@ -246,8 +246,14 @@ npx prisma studio                        # Browse DB in browser
 - `DIRECT_URL` = direct connection (migrations)
 - All DB access: `import { db } from '@/lib/db'`
 
-### Auth placeholder
-Auth is not yet built. Until it is, API routes **upsert temporary User records** keyed on `{ platformId: username, platform }`. When real auth is wired, these records will be replaced by actual OAuth users.
+### Auth
+- Config lives in `auth.ts` at the root
+- `app/api/auth/[...nextauth]/route.ts` — NextAuth handler
+- `types/next-auth.d.ts` — session type augmentation
+- On sign-in: upserts a real `User` record in the DB (`verified: true`)
+- Session user shape: `{ id, name, username, platform, role, image }`
+- `platform` is **lowercase** in the session (`twitch`) to match `PlatformIcon`
+- Always run `prisma generate && next build` — the build script handles this automatically
 
 ---
 
