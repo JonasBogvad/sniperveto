@@ -44,33 +44,38 @@ export default function AppealsManager({ appeals: initial }: { appeals: AppealIt
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('PENDING');
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const filtered = filter === 'ALL' ? appeals : appeals.filter((a) => a.status === filter);
   const pendingCount = appeals.filter((a) => a.status === 'PENDING').length;
 
-  async function confirmAction() {
-    if (!pendingAction) return;
-    setSubmitting(pendingAction.id);
+  async function confirmAction(snapshot: PendingAction) {
+    setError(null);
+    setSubmitting(snapshot.id);
     try {
-      const res = await fetch(`/api/appeals/${pendingAction.id}/review`, {
+      const res = await fetch(`/api/appeals/${snapshot.id}/review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: pendingAction.action,
-          note: pendingAction.note || undefined,
+          action: snapshot.action,
+          note: snapshot.note || undefined,
         }),
       });
-      if (res.ok) {
-        const { status } = (await res.json()) as { status: string };
+      const json = (await res.json()) as { status?: string; error?: string };
+      if (res.ok && json.status) {
         setAppeals((prev) =>
           prev.map((a) =>
-            a.id === pendingAction.id
-              ? { ...a, status, reviewNote: pendingAction.note || null }
+            a.id === snapshot.id
+              ? { ...a, status: json.status!, reviewNote: snapshot.note || null }
               : a,
           ),
         );
         setPendingAction(null);
+      } else {
+        setError(json.error ?? `Request failed (${res.status})`);
       }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Network error');
     } finally {
       setSubmitting(null);
     }
@@ -92,7 +97,7 @@ export default function AppealsManager({ appeals: initial }: { appeals: AppealIt
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               filter === f.value
                 ? 'bg-white/15 text-sv-text'
                 : 'text-sv-text-3 hover:text-sv-text-2 hover:bg-white/5'
@@ -102,6 +107,13 @@ export default function AppealsManager({ appeals: initial }: { appeals: AppealIt
           </button>
         ))}
       </div>
+
+      {/* Global error banner */}
+      {error && (
+        <p className="text-xs text-sv-danger bg-sv-danger/10 border border-sv-danger/20 rounded-lg px-3 py-2">
+          {error}
+        </p>
+      )}
 
       {filtered.length === 0 ? (
         <p className="text-sv-text-3 text-sm py-8 text-center">No appeals in this category.</p>
@@ -188,7 +200,7 @@ export default function AppealsManager({ appeals: initial }: { appeals: AppealIt
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => setPendingAction(null)}
+                        onClick={() => { setPendingAction(null); setError(null); }}
                         disabled={submitting === appeal.id}
                         className="text-sv-text-3 text-xs h-7 px-3"
                       >
@@ -196,7 +208,7 @@ export default function AppealsManager({ appeals: initial }: { appeals: AppealIt
                       </Button>
                       <Button
                         size="sm"
-                        onClick={() => void confirmAction()}
+                        onClick={() => void confirmAction(pendingAction)}
                         disabled={submitting === appeal.id}
                         className={`text-xs h-7 px-3 ${
                           pendingAction.action === 'reject'
