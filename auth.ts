@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth';
 import Twitch from 'next-auth/providers/twitch';
+import Google from 'next-auth/providers/google';
 import { db } from '@/lib/db';
 
 const platformMap: Record<string, 'TWITCH' | 'YOUTUBE'> = {
@@ -22,6 +23,7 @@ function getAdminUsernames(): Set<string> {
       .filter(Boolean),
   );
 }
+
 
 async function fetchTwitchModeratedChannels(
   accessToken: string,
@@ -69,17 +71,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
       },
     }),
+    Google,
   ],
   session: { strategy: 'jwt' },
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (!account || !profile) return false;
+      if (!account) return false;
       const platform = platformMap[account.provider];
-      if (!platform) return false;
+      if (!platform) {
+        console.log('[auth.signIn] returning false — unknown provider:', account.provider);
+        return false;
+      }
+      // Twitch needs profile for preferred_username; Google works without it
+      if (account.provider === 'twitch' && !profile) {
+        console.log('[auth.signIn] returning false — Twitch missing profile');
+        return false;
+      }
 
       const platformId = account.providerAccountId;
-      const twitchProfile = profile as { preferred_username?: string };
-      const username = twitchProfile.preferred_username ?? user.name ?? platformId;
+
+      let username: string;
+      if (account.provider === 'twitch') {
+        const twitchProfile = profile as { preferred_username?: string };
+        username = twitchProfile.preferred_username ?? user.name ?? platformId;
+      } else {
+        // YouTube — use Google display name as username, fall back to platformId
+        username = (user.name ?? '').replace(/\s+/g, '_').toLowerCase() || `yt_${platformId}`;
+      }
+      console.log('[auth.signIn] username:', username, '| platform:', platform);
 
       const admins = getAdminUsernames();
       const isAdmin = admins.has(username.toLowerCase());
@@ -97,13 +116,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (moderatedChannels.length > 0) role = 'MOD';
         }
 
+        // Avoid email unique constraint clash — only store email if not already used by another user
+        const existingEmailUser = user.email
+          ? await db.user.findFirst({ where: { email: user.email, NOT: { platformId, platform } } })
+          : null;
+        const safeEmail = existingEmailUser ? null : (user.email ?? null);
+
         const dbUser = await db.user.upsert({
           where: { platformId_platform: { platformId, platform } },
           create: {
             username,
             displayName: user.name ?? username,
             avatarUrl: user.image ?? null,
-            email: user.email ?? null,
+            email: safeEmail,
             platform,
             platformId,
             verified: true,
@@ -112,7 +137,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           update: {
             displayName: user.name ?? username,
             avatarUrl: user.image ?? null,
-            email: user.email ?? null,
+            email: safeEmail,
             verified: true,
             role,
           },
@@ -150,9 +175,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         }
 
+        console.log('[auth.signIn] success — returning true');
         return true;
       } catch (err) {
-        console.error('[auth.signIn]', err);
+        console.error('[auth.signIn] caught error:', err);
         return false;
       }
     },

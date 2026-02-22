@@ -42,6 +42,30 @@ const ReportForm = ({ user, onSubmit, initialSteamId, initialSteamName }: Report
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupAvatar, setLookupAvatar] = useState<string | null>(null);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+
+  const handleSteamLookup = async () => {
+    if (!formData.steamId.trim()) return;
+    setLookupLoading(true);
+    setLookupError(null);
+    setLookupAvatar(null);
+    try {
+      const res = await fetch(`/api/steam/lookup?steamId=${encodeURIComponent(formData.steamId.trim())}`);
+      if (!res.ok) {
+        setLookupError('Profile not found');
+        return;
+      }
+      const data = (await res.json()) as { steamName: string; avatarUrl: string };
+      setFormData((prev) => ({ ...prev, steamName: data.steamName }));
+      setLookupAvatar(data.avatarUrl);
+    } catch {
+      setLookupError('Lookup failed');
+    } finally {
+      setLookupLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,26 +122,47 @@ const ReportForm = ({ user, onSubmit, initialSteamId, initialSteamName }: Report
 
       <form onSubmit={handleSubmit} className="bg-slate-800/50 border border-white/10 rounded-xl p-4 sm:p-5">
         <div className="space-y-3 sm:space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Steam ID *</label>
+          <div>
+            <label className="block text-sm font-medium mb-1">Steam ID *</label>
+            <div className="flex gap-2">
               <Input
                 type="text"
                 required
                 placeholder="76561198..."
                 value={formData.steamId}
-                onChange={(e) => setFormData({ ...formData, steamId: e.target.value })}
-                className="bg-white/5 border-white/10 text-white"
+                onChange={(e) => {
+                  setFormData({ ...formData, steamId: e.target.value });
+                  setLookupAvatar(null);
+                  setLookupError(null);
+                }}
+                className="bg-white/5 border-white/10 text-white flex-1"
               />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleSteamLookup}
+                disabled={lookupLoading || !formData.steamId.trim()}
+                className="bg-white/10 hover:bg-white/20 text-sv-text-2 text-xs shrink-0"
+              >
+                {lookupLoading ? '...' : 'Lookup'}
+              </Button>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Steam Name</label>
+            {lookupError && <p className="text-xs text-sv-danger mt-1">{lookupError}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Steam Name</label>
+            <div className="flex items-center gap-2">
+              {lookupAvatar && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={lookupAvatar} alt="" className="w-7 h-7 rounded" />
+              )}
               <Input
                 type="text"
                 placeholder="Display name"
                 value={formData.steamName}
                 onChange={(e) => setFormData({ ...formData, steamName: e.target.value })}
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white/5 border-white/10 text-white flex-1"
               />
             </div>
           </div>

@@ -33,6 +33,7 @@ export async function fetchReports(steamId?: string): Promise<Report[]> {
     id: row.id,
     steamId: row.steamAccount.steamId,
     steamName: row.steamAccount.steamName,
+    steamAvatarUrl: row.steamAccount.avatarUrl ?? null,
     reportedBy: row.reportedBy.displayName,
     submittedBy: row.submittedBy?.displayName ?? null,
     platform: toFrontendPlatform(row.platform),

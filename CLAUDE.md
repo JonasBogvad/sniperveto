@@ -123,6 +123,16 @@ All colors are defined as CSS tokens in `app/globals.css` and available as Tailw
 - **Brand gradient**: always `from-sv-brand to-sv-brand-2`
 - **Status colors** (`sv-clean`, `sv-warn`, `sv-danger`) are for semantic status only — not decorative
 
+### Icons — PlatformIcon
+
+`components/PlatformIcon.tsx` renders SVG icons for `twitch`, `youtube`, and `kick`.
+
+- SVG paths are stored as constants in the `ICONS` object at the top of the file
+- Source: [simpleicons.org](https://simpleicons.org) — search the platform name, copy the SVG path
+- To update a logo: replace the path string in `ICONS`. No other files need to change.
+- Colors are in the `COLORS` object (`text-purple-400`, `text-red-500`, `text-green-400`)
+- Props: `platform: Platform | string`, `size?: number` (default 16)
+
 ---
 
 ## 6. Code Standards

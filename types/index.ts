@@ -31,6 +31,7 @@ export interface Report {
   id: string;
   steamId: string;
   steamName: string;
+  steamAvatarUrl?: string | null;
   reportedBy: string;
   submittedBy: string | null;
   platform: Platform;
@@ -44,6 +45,22 @@ export interface Report {
     total: number;
     voters: string[]; // displayNames of users who voted
   };
+}
+
+// ─────────────────────────────────────────────
+// APPEAL
+// ─────────────────────────────────────────────
+
+export type AppealStatus = 'PENDING' | 'REVIEWED' | 'ACCEPTED' | 'REJECTED';
+
+export interface Appeal {
+  id: string;
+  reportId: string;
+  steamId: string;
+  reason: string;
+  contact: string | null;
+  status: AppealStatus;
+  createdAt: string;
 }
 
 // ─────────────────────────────────────────────

@@ -62,9 +62,18 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="mb-4 sm:mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-1">Sniper Database</h2>
-        <p className="text-gray-400 text-xs sm:text-sm">Browse reported snipers</p>
+      <div className="mb-4 sm:mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold mb-1">Sniper Database</h2>
+          <p className="text-sv-text-2 text-xs sm:text-sm">Browse reported snipers</p>
+        </div>
+        <a
+          href="/api/reports/export"
+          download
+          className="text-xs text-sv-text-3 hover:text-sv-text-2 underline underline-offset-2 shrink-0 mt-1"
+        >
+          Export CSV
+        </a>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4 sm:mb-6">

@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import PlatformIcon from '@/components/PlatformIcon';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import type { Report, AppUser } from '@/types';
 
 interface ReportDetailModalProps {
@@ -15,14 +17,45 @@ interface ReportDetailModalProps {
 
 const ReportDetailModal = ({ report, open, onClose, user, onVote }: ReportDetailModalProps) => {
   const hasVoted = user != null && report?.votes.voters.includes(user.name);
+  const [showAppeal, setShowAppeal] = useState(false);
+  const [appealReason, setAppealReason] = useState('');
+  const [appealContact, setAppealContact] = useState('');
+  const [appealLoading, setAppealLoading] = useState(false);
+  const [appealDone, setAppealDone] = useState(false);
+
+  const handleAppealSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!report) return;
+    setAppealLoading(true);
+    try {
+      await fetch(`/api/reports/${report.id}/appeal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ steamId: report.steamId, reason: appealReason, contact: appealContact || undefined }),
+      });
+      setAppealDone(true);
+    } catch {
+      // silent fail — appeal goes through next time
+    } finally {
+      setAppealLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-slate-800 border-white/10 text-white sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl truncate">{report?.steamName}</DialogTitle>
+          <div className="flex items-center gap-3">
+            {report?.steamAvatarUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={report.steamAvatarUrl} alt="" className="w-10 h-10 rounded flex-shrink-0" />
+            )}
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl truncate">{report?.steamName}</DialogTitle>
+              <p className="text-gray-500 font-mono text-xs sm:text-sm truncate">{report?.steamId}</p>
+            </div>
+          </div>
           <DialogDescription className="sr-only">Stream sniper report details</DialogDescription>
-          <p className="text-gray-500 font-mono text-xs sm:text-sm truncate">{report?.steamId}</p>
         </DialogHeader>
 
         {report && (
@@ -112,6 +145,45 @@ const ReportDetailModal = ({ report, open, onClose, user, onVote }: ReportDetail
                 {hasVoted ? 'Voted' : '+ Vote'}
               </Button>
             </div>
+
+            {/* Appeal section */}
+            {!showAppeal ? (
+              <button
+                onClick={() => setShowAppeal(true)}
+                className="text-xs text-sv-text-3 hover:text-sv-text-2 underline underline-offset-2 text-left"
+              >
+                Is this report incorrect? File an appeal
+              </button>
+            ) : appealDone ? (
+              <p className="text-xs text-sv-clean">Appeal submitted. Our team will review it.</p>
+            ) : (
+              <form onSubmit={handleAppealSubmit} className="border-t border-white/10 pt-3 space-y-2">
+                <p className="text-xs font-medium text-sv-text-2">File an Appeal</p>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Explain why this report is incorrect..."
+                  value={appealReason}
+                  onChange={(e) => setAppealReason(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs resize-none text-white placeholder-sv-text-3"
+                />
+                <Input
+                  type="text"
+                  placeholder="Contact (optional — email or Discord)"
+                  value={appealContact}
+                  onChange={(e) => setAppealContact(e.target.value)}
+                  className="bg-white/5 border-white/10 text-white text-xs"
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" size="sm" disabled={appealLoading} className="bg-sv-brand hover:bg-sv-brand-2 text-xs">
+                    {appealLoading ? 'Submitting...' : 'Submit Appeal'}
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setShowAppeal(false)} className="text-sv-text-3 text-xs">
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
           </>
         )}
       </DialogContent>

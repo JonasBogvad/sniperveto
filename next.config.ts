@@ -20,8 +20,8 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      // Twitch avatars + data URIs for placeholders
-      "img-src 'self' data: blob: https://static-cdn.jtvnw.net",
+      // Twitch avatars, Google avatars + data URIs for placeholders
+      "img-src 'self' data: blob: https://static-cdn.jtvnw.net https://lh3.googleusercontent.com",
       "font-src 'self' https://fonts.gstatic.com",
       // API routes and NextAuth callbacks
       "connect-src 'self'",
@@ -43,6 +43,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'static-cdn.jtvnw.net', // Twitch avatars
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com', // Google/YouTube avatars
       },
     ],
   },
