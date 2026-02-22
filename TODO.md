@@ -6,7 +6,9 @@ _None_
 ## Pending
 
 ### Must Have (MVP blockers)
-- [ ] Wire OAuth auth (NextAuth.js — Twitch, Kick, YouTube)
+- [x] Wire OAuth auth — Twitch live (NextAuth.js v5)
+- [ ] Wire OAuth auth — YouTube (Google provider)
+- [ ] Wire OAuth auth — Kick (no official OAuth yet, skip)
 - [ ] Test all features in browser (reports load from DB, submit form, vote)
 - [ ] Rate limiting & abuse prevention (API routes)
 
