@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import ReportCard from '@/components/ReportCard';
 import ReportDetailModal from '@/components/ReportDetailModal';
 import { useUser } from '@/lib/user-context';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Report } from '@/types';
 
 export default function HomePage() {
@@ -87,16 +88,17 @@ export default function HomePage() {
             className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 sm:py-2.5 text-sm text-white placeholder-gray-500"
           />
         </div>
-        <select
-          value={filterGame}
-          onChange={(e) => setFilterGame(e.target.value)}
-          className="bg-white/5 border border-white/10 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-white"
-        >
-          <option value="">All Games</option>
-          {games.map((game) => (
-            <option key={game} value={game}>{game}</option>
-          ))}
-        </select>
+        <Select value={filterGame} onValueChange={setFilterGame}>
+          <SelectTrigger className="w-full sm:w-48 bg-sv-surface border-white/10 text-sv-text text-sm">
+            <SelectValue placeholder="All Games" />
+          </SelectTrigger>
+          <SelectContent className="bg-sv-surface border-white/10">
+            <SelectItem value="">All Games</SelectItem>
+            {games.map((game) => (
+              <SelectItem key={game} value={game}>{game}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {loading ? (
