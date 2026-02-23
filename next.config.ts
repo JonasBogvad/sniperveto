@@ -18,13 +18,13 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Twitch + Kick avatars + data URIs for placeholders
       "img-src 'self' data: blob: https://static-cdn.jtvnw.net https://kick.com https://files.kick.com",
       "font-src 'self' https://fonts.gstatic.com",
       // API routes and NextAuth callbacks
-      "connect-src 'self'",
+      "connect-src 'self' https://va.vercel-scripts.com",
       // No frames anywhere
       "frame-src 'none'",
       "frame-ancestors 'none'",
