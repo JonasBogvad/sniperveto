@@ -3,6 +3,7 @@ import Link from 'next/link';
 import './globals.css';
 import SessionProviderWrapper from '@/components/SessionProviderWrapper';
 import Header from '@/components/Header';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: 'SniperVeto - Stream Sniper Database',
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </footer>
         </SessionProviderWrapper>
+        <Analytics />
       </body>
     </html>
   );
