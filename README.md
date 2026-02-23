@@ -37,12 +37,12 @@ SniperVeto is a shared blocklist built by the streaming community. Streamers and
 
 ## Features
 
-- 🎮 **Public database** — Searchable by Steam ID, game, or streamer. No login required to browse
-- ✅ **Verified reports** — Submissions require a verified Twitch or Kick account
-- 🗳️ **Community voting** — Streamers upvote to corroborate reports they've experienced
-- 📋 **Appeal system** — Reported players can verify their Steam identity and submit an appeal
-- 🔔 **Discord notifications** — New reports and appeals notify your mod team instantly
-- 🧩 **Browser extension** — Check any Steam profile against the database without leaving Steam
+- Public database searchable by Steam ID, game, or streamer — no login required to browse
+- Reports require a verified Twitch or Kick account
+- Streamers upvote to corroborate reports from their own experience
+- Reported players can verify their Steam identity and submit an appeal
+- New reports and appeals notify your mod team via Discord
+- Browser extension checks any Steam profile against the database without leaving Steam
 
 ---
 
