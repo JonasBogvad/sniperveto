@@ -18,26 +18,26 @@
 
 ## The Problem
 
-Stream snipers watch your stream to find out your in-game location and join your game to ruin it. They know where you are — you don't know who they are.
+Stream snipers watch your stream to find out your in-game location and join your game to ruin it. They know where you are - you don't know who they are.
 
 ## The Solution
 
-SniperVeto is a shared blocklist built by the streaming community. Streamers and their mods report suspected snipers by Steam ID with evidence. Other streamers corroborate with votes. Every report on the same Steam account stacks — building a cross-streamer, cross-game evidence file on known offenders.
+SniperVeto is a shared blocklist built by the streaming community. Streamers and their mods report suspected snipers by Steam ID with evidence. Other streamers corroborate with votes. Every report on the same Steam account stacks - building a cross-streamer, cross-game evidence file on known offenders.
 
 ---
 
 ## How It Works
 
-1. **Report** — A streamer or verified mod submits a Steam ID, description, and proof links
-2. **Corroborate** — Other verified streamers upvote reports they can confirm from their own experience
-3. **Accumulate** — All reports across different streamers and games stack on the same Steam account
-4. **Block** — The community uses the database to identify and block known snipers
+1. **Report** - A streamer or verified mod submits a Steam ID, description, and proof links
+2. **Corroborate** - Other verified streamers upvote reports they can confirm from their own experience
+3. **Accumulate** - All reports across different streamers and games stack on the same Steam account
+4. **Block** - The community uses the database to identify and block known snipers
 
 ---
 
 ## Features
 
-- Public database searchable by Steam ID, game, or streamer — no login required to browse
+- Public database searchable by Steam ID, game, or streamer - no login required to browse
 - Reports require a verified Twitch or Kick account
 - Streamers upvote to corroborate reports from their own experience
 - Reported players can verify their Steam identity and submit an appeal
@@ -48,7 +48,7 @@ SniperVeto is a shared blocklist built by the streaming community. Streamers and
 
 ## Browser Extension
 
-The [SniperVeto Extension](https://github.com/JonasBogvad/sniperveto-extension) injects a status panel directly into Steam Community profile pages — instantly showing whether a player is in the database, with a direct link to view reports or file a new one.
+The [SniperVeto Extension](https://github.com/JonasBogvad/sniperveto-extension) injects a status panel directly into Steam Community profile pages - instantly showing whether a player is in the database, with a direct link to view reports or file a new one.
 
 ---
 
@@ -60,11 +60,11 @@ The [SniperVeto Extension](https://github.com/JonasBogvad/sniperveto-extension) 
 | Language | TypeScript (strict) |
 | Styling | Tailwind CSS v4 + shadcn/ui |
 | Database | PostgreSQL (Neon) via Prisma v7 |
-| Auth | NextAuth.js v5 — Twitch + Kick OAuth |
+| Auth | NextAuth.js v5 - Twitch + Kick OAuth |
 | Deployment | Vercel |
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT - see [LICENSE](LICENSE) for details.
