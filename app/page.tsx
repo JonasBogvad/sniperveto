@@ -15,7 +15,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterGame, setFilterGame] = useState('');
+  const [filterGame, setFilterGame] = useState('all');
 
   useEffect(() => {
     const load = async () => {
@@ -56,7 +56,7 @@ export default function HomePage() {
       r.steamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.steamId.includes(searchQuery) ||
       r.reportedBy.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch && (filterGame === '' || r.game === filterGame);
+    return matchesSearch && (filterGame === 'all' || r.game === filterGame);
   });
 
   const games = [...new Set(reports.map((r) => r.game))];
@@ -93,7 +93,7 @@ export default function HomePage() {
             <SelectValue placeholder="All Games" />
           </SelectTrigger>
           <SelectContent className="bg-sv-surface border-white/10">
-            <SelectItem value="">All Games</SelectItem>
+            <SelectItem value="all">All Games</SelectItem>
             {games.map((game) => (
               <SelectItem key={game} value={game}>{game}</SelectItem>
             ))}
