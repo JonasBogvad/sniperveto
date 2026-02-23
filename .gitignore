@@ -46,6 +46,9 @@ coverage/
 *.tmp
 *.temp
 
+# AI assistant files
+CLAUDE.md
+
 /lib/generated/prisma
 
 .vercel
