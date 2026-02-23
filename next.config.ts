@@ -21,7 +21,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Twitch + Kick avatars + data URIs for placeholders
-      "img-src 'self' data: blob: https://static-cdn.jtvnw.net https://kick.com https://files.kick.com",
+      "img-src 'self' data: blob: https://static-cdn.jtvnw.net https://kick.com https://files.kick.com https://avatars.steamstatic.com",
       "font-src 'self' https://fonts.gstatic.com",
       // API routes and NextAuth callbacks
       "connect-src 'self' https://va.vercel-scripts.com",
@@ -53,6 +53,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'files.kick.com', // Kick CDN avatars
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.steamstatic.com', // Steam avatars
       },
     ],
   },

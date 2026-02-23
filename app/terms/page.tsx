@@ -22,7 +22,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">2. Eligibility</h2>
         <p className="text-sv-text-2 text-sm leading-relaxed">
-          You must have a valid Twitch or YouTube account to log in and submit reports. By logging
+          You must have a valid Twitch or Kick account to log in and submit reports. By logging
           in you confirm that you are authorised to use that account and that the information you
           provide is accurate.
         </p>

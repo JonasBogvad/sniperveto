@@ -68,6 +68,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const validGame = await db.game.findUnique({ where: { name: game } });
+    if (!validGame) {
+      return NextResponse.json({ error: 'Invalid game' }, { status: 400 });
+    }
+
     const dbPlatform = toDbPlatform(session.user.platform);
 
     const report = await db.$transaction(async (tx: Parameters<Parameters<typeof db.$transaction>[0]>[0]) => {
@@ -98,6 +103,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           data: validLinks.map((url) => ({ reportId: newReport.id, url })),
         });
       }
+
+      // 4. Auto-vote from the submitter
+      await tx.reportVote.create({
+        data: { reportId: newReport.id, userId: session.user.id },
+      });
 
       return newReport;
     });

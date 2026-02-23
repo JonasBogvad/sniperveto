@@ -23,7 +23,7 @@ export default function PrivacyPage() {
         <h2 className="text-lg font-semibold">Data we collect</h2>
         <div className="space-y-4 text-sm text-sv-text-2 leading-relaxed">
           <div>
-            <p className="font-medium text-sv-text mb-1">When you log in with Twitch or YouTube</p>
+            <p className="font-medium text-sv-text mb-1">When you log in with Twitch or Kick</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Your platform username and display name</li>
               <li>Your profile avatar</li>

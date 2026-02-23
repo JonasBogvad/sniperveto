@@ -185,6 +185,16 @@ model ReportVote {
 }
 
 // ─────────────────────────────────────────────
+// GAME — admin-managed list of games
+// ─────────────────────────────────────────────
+
+model Game {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
 // REPORT APPEAL — filed by the reported Steam account owner
 // ─────────────────────────────────────────────
 

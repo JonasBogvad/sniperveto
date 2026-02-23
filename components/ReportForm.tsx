@@ -18,21 +18,10 @@ interface ReportFormProps {
   onSubmit: (data: ReportFormData) => Promise<void> | void;
   initialSteamId?: string;
   initialSteamName?: string;
+  games: string[];
 }
 
-const GAMES = [
-  'PUBG',
-  'Rust',
-  'Escape from Tarkov',
-  'Call of Duty: Warzone',
-  'Fortnite',
-  'Apex Legends',
-  'DayZ',
-  'Counter-Strike 2',
-  'Other',
-];
-
-const ReportForm = ({ user, onSubmit, initialSteamId, initialSteamName }: ReportFormProps) => {
+const ReportForm = ({ user, onSubmit, initialSteamId, initialSteamName, games }: ReportFormProps) => {
   const [formData, setFormData] = useState<ReportFormData>({
     steamId: initialSteamId ?? '',
     steamName: initialSteamName ?? '',
@@ -178,13 +167,13 @@ const ReportForm = ({ user, onSubmit, initialSteamId, initialSteamName }: Report
                 <SelectValue placeholder="Select game..." />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-white/10">
-                {GAMES.map((game) => (
+                {games.map((game) => (
                   <SelectItem
                     key={game}
                     value={game}
                     className="text-white focus:bg-white/10 focus:text-white"
                   >
-                    {game === 'Call of Duty: Warzone' ? 'Warzone' : game}
+                    {game}
                   </SelectItem>
                 ))}
               </SelectContent>

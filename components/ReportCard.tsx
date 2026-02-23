@@ -24,9 +24,19 @@ const ReportCard = ({ report, onClick, user, onVote }: ReportCardProps) => {
     >
       <CardContent className="p-3 sm:p-4">
         <div className="flex justify-between items-start mb-2 gap-2">
-          <div className="min-w-0 flex-1">
-            <h3 className="font-bold text-white text-sm sm:text-base truncate">{report.steamName}</h3>
-            <p className="text-xs text-gray-500 font-mono truncate">{report.steamId}</p>
+          <div className="min-w-0 flex-1 flex items-center gap-2">
+            {report.steamAvatarUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={report.steamAvatarUrl}
+                alt=""
+                className="w-8 h-8 rounded shrink-0"
+              />
+            )}
+            <div className="min-w-0">
+              <h3 className="font-bold text-white text-sm sm:text-base truncate">{report.steamName}</h3>
+              <p className="text-xs text-gray-500 font-mono truncate">{report.steamId}</p>
+            </div>
           </div>
           <SeverityBadge severity={report.severity} reportCount={report.reportCount} />
         </div>

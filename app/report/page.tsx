@@ -1,56 +1,13 @@
-'use client';
+import { db } from '@/lib/db';
+import ReportPageClient from './ReportPageClient';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { Suspense } from 'react';
-import ReportForm from '@/components/ReportForm';
-import { useUser } from '@/lib/user-context';
-import type { ReportFormData } from '@/types';
-
-function ReportPageInner() {
-  const { user } = useUser();
-  const { data: session } = useSession();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const initialSteamId = searchParams.get('steamId') ?? undefined;
-  const initialSteamName = searchParams.get('steamName') ?? undefined;
-
-  const handleSubmit = async (formData: ReportFormData) => {
-    if (!session?.user) return;
-
-    const res = await fetch('/api/reports', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        steamId: formData.steamId,
-        steamName: formData.steamName,
-        game: formData.game,
-        description: formData.description,
-        proofLinks: formData.proofLinks.filter((l) => l.trim() !== ''),
-        severity: 'low',
-      }),
-    });
-
-    if (res.ok) {
-      router.push('/');
-    }
-  };
+export default async function ReportPage() {
+  const games = await db.game.findMany({ orderBy: { name: 'asc' } });
+  const gameNames = games.map((g) => g.name);
 
   return (
-    <ReportForm
-      user={user}
-      onSubmit={handleSubmit}
-      initialSteamId={initialSteamId}
-      initialSteamName={initialSteamName}
-    />
-  );
-}
-
-export default function ReportPage() {
-  return (
-    <Suspense>
-      <ReportPageInner />
-    </Suspense>
+    <main className="py-6">
+      <ReportPageClient games={gameNames} />
+    </main>
   );
 }
