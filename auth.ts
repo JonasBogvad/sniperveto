@@ -128,6 +128,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       const admins = getAdminUsernames();
       const isAdmin = admins.has(username.toLowerCase());
+      console.log('[auth.signIn] AUTH_ADMIN_USERNAMES raw:', process.env.AUTH_ADMIN_USERNAMES);
+      console.log('[auth.signIn] admins set:', [...admins]);
+      console.log('[auth.signIn] username.toLowerCase():', username.toLowerCase());
+      console.log('[auth.signIn] isAdmin:', isAdmin);
 
       try {
         // Check if this user is already a registered streamer
