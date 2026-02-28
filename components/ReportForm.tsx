@@ -85,7 +85,19 @@ const ReportForm = ({ user, onSubmit, initialSteamId, initialSteamName, games }:
           *
         </div>
         <h2 className="text-lg sm:text-xl font-bold mb-2">Login Required</h2>
-        <p className="text-gray-400 text-sm">Connect your Twitch account to submit reports</p>
+        <p className="text-sv-text-2 text-sm">Connect your Twitch account to submit reports</p>
+      </div>
+    );
+  }
+
+  if (!['MOD', 'STREAMER', 'ADMIN'].includes(user.role)) {
+    return (
+      <div className="max-w-lg mx-auto text-center py-12 sm:py-16 px-4">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4 text-2xl sm:text-3xl">
+          *
+        </div>
+        <h2 className="text-lg sm:text-xl font-bold mb-2">Access Restricted</h2>
+        <p className="text-sv-text-2 text-sm">Only verified streamers and mods can submit reports.</p>
       </div>
     );
   }

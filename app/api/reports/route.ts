@@ -48,6 +48,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (!['MOD', 'STREAMER', 'ADMIN'].includes(session.user.role)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     // Rate limit: max 5 reports per user per hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
