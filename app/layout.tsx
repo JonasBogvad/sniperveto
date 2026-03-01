@@ -8,20 +8,6 @@ import { Analytics } from '@vercel/analytics/next';
 export const metadata: Metadata = {
   title: 'SniperVeto - Stream Sniper Database',
   description: 'Community-driven stream sniper reporting database for streamers and their moderators',
-  openGraph: {
-    title: 'SniperVeto - Stream Sniper Database',
-    description: 'Report, corroborate, and block known stream snipers across games and platforms.',
-    url: 'https://sniperveto.app',
-    siteName: 'SniperVeto',
-    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'SniperVeto - Stream Sniper Database',
-    description: 'Report, corroborate, and block known stream snipers across games and platforms.',
-    images: ['/opengraph-image'],
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
