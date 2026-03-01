@@ -2,8 +2,8 @@ import { ImageResponse } from 'next/og';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-const iconData = readFileSync(join(process.cwd(), 'app/icon.png'));
-const iconSrc = `data:image/png;base64,${iconData.toString('base64')}`;
+const faceData = readFileSync(join(process.cwd(), 'public/face.png'));
+const faceSrc = `data:image/png;base64,${faceData.toString('base64')}`;
 
 const logoData = readFileSync(join(process.cwd(), 'public/logo.png'));
 const logoSrc = `data:image/png;base64,${logoData.toString('base64')}`;
@@ -49,7 +49,7 @@ export default async function Image() {
         {/* Faded troll face — right side decoration */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={iconSrc}
+          src={faceSrc}
           alt=""
           width={480}
           height={480}
