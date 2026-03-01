@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://sniperveto.app'),
   title: 'SniperVeto - Stream Sniper Database',
   description: 'Community-driven stream sniper reporting database for streamers and their moderators',
 };
