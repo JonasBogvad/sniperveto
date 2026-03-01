@@ -16,6 +16,10 @@ export async function POST(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (!['MOD', 'STREAMER', 'ADMIN'].includes(session.user.role)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const { id: reportId } = await params;
 
