@@ -120,7 +120,7 @@ export default async function Image() {
             display: 'flex',
           }}
         >
-          Report, corroborate, and block known stream snipers across games and platforms.
+          Report, upvote, and block known stream snipers across games and platforms.
         </div>
 
         {/* Bottom pills */}

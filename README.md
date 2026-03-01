@@ -22,14 +22,14 @@ Stream snipers watch your stream to find out your in-game location and join your
 
 ## The Solution
 
-SniperVeto is a shared blocklist built by the streaming community. Streamers and their mods report suspected snipers by Steam ID with evidence. Other streamers corroborate with votes. Every report on the same Steam account stacks - building a cross-streamer, cross-game evidence file on known offenders.
+SniperVeto is a shared blocklist built by the streaming community. Streamers and their mods report suspected snipers by Steam ID with evidence. Other streamers upvote to confirm. Every report on the same Steam account stacks - building a cross-streamer, cross-game evidence file on known offenders.
 
 ---
 
 ## How It Works
 
 1. **Report** - A streamer or verified mod submits a Steam ID, description, and proof links
-2. **Corroborate** - Other verified streamers upvote reports they can confirm from their own experience
+2. **Upvote** - Other verified streamers upvote reports they can confirm from their own experience
 3. **Accumulate** - All reports across different streamers and games stack on the same Steam account
 4. **Block** - The community uses the database to identify and block known snipers
 
@@ -39,7 +39,7 @@ SniperVeto is a shared blocklist built by the streaming community. Streamers and
 
 - Public database searchable by Steam ID, game, or streamer - no login required to browse
 - Reports require a verified Twitch or Kick account
-- Streamers upvote to corroborate reports from their own experience
+- Streamers upvote to confirm reports from their own experience
 - Reported players can verify their Steam identity and submit an appeal
 - New reports and appeals notify your mod team via Discord
 - Browser extension checks any Steam profile against the database without leaving Steam
